@@ -1,0 +1,44 @@
+model:
+
+  context_encoder:
+    type: transformer
+    input_dim: 64
+    embed_dim: 256
+    depth: 6
+    heads: 8
+    mlp_ratio: 4.0
+    dropout: 0.1
+
+  target_encoder:
+    ema_tau: 0.996
+
+  predictor_bank:
+
+    latent_dim: 256
+
+    operators:
+
+      macro:
+        hidden_dim: 256
+        layers: 2
+
+      volatility:
+        hidden_dim: 256
+        layers: 2
+
+      liquidity:
+        hidden_dim: 256
+        layers: 2
+
+      residual:
+        hidden_dim: 256
+        layers: 2
+
+    gating:
+      type: softmax
+      temperature: 1.0
+
+  prediction:
+
+    horizon: 8
+    latent_dim: 256

@@ -1,0 +1,28 @@
+experiment:
+  name: regime_detection
+  task: classification
+  seed: 42
+
+data:
+  dataset_config: configs/datasets/macro.yaml
+  target: regime_label
+  target_horizon: 8
+
+model:
+  config: configs/model/fi_jepa_base.yaml
+  finetune_head: regime_head
+
+training:
+  config: configs/training/finetune.yaml
+  epochs: 50
+
+metrics:
+  - accuracy
+  - f1_macro
+  - auroc
+  - balanced_accuracy
+  - ece
+
+evaluation:
+  rolling_window: 252
+  report_per_class: true

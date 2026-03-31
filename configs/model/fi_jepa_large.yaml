@@ -1,0 +1,40 @@
+model:
+
+  context_encoder:
+    type: transformer
+    input_dim: 64
+    embed_dim: 512
+    depth: 12
+    heads: 16
+    mlp_ratio: 4.0
+    dropout: 0.1
+
+  target_encoder:
+    ema_tau: 0.998
+
+  predictor_bank:
+
+    latent_dim: 512
+
+    operators:
+
+      macro:
+        hidden_dim: 512
+        layers: 3
+
+      volatility:
+        hidden_dim: 512
+        layers: 3
+
+      liquidity:
+        hidden_dim: 512
+        layers: 3
+
+      residual:
+        hidden_dim: 512
+        layers: 3
+
+  prediction:
+
+    horizon: 12
+    latent_dim: 512

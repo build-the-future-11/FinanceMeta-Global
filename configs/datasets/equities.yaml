@@ -1,0 +1,36 @@
+dataset:
+  name: equities
+  kind: multi_asset_time_series
+  split:
+    train: 0.70
+    val: 0.15
+    test: 0.15
+
+  features:
+    - log_return
+    - log_price
+    - volume
+    - realized_volatility
+    - bid_ask_spread
+    - order_imbalance
+    - market_beta
+    - sector_factor
+    - macro_indicator
+
+  preprocessing:
+    normalize_per_asset: true
+    zscore_window: 252
+    clip_quantile: 0.995
+    fill_missing: forward_then_zero
+
+  sampling:
+    context_length: 128
+    target_length: 16
+    horizon_set: [1, 2, 4, 8, 16]
+    stride: 1
+    overlap: true
+
+  universe:
+    type: top_liquidity_universe
+    size: 100
+    rebalance_frequency: monthly

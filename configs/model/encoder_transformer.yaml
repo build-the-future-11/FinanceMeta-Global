@@ -1,0 +1,13 @@
+encoder:
+
+  type: transformer
+
+  input_dim: 64
+  embed_dim: 256
+  depth: 6
+  heads: 8
+
+  mlp_ratio: 4.0
+  dropout: 0.1
+
+  positional_encoding: learned

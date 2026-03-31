@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fi-jepa"
+version = "0.1.0"
+description = "FI-JEPA: Financial Informed Joint Embedding Predictive Architecture"
+authors = [
+    { name="Ryan Gomez" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "torch>=2.1.0",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "pyyaml>=6.0",
+    "tqdm>=4.66",
+    "matplotlib>=3.7",
+    "einops>=0.7",
+]
+
+[tool.setuptools.packages.find]
+include = ["fi_jepa*"]

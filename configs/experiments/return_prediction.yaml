@@ -1,0 +1,28 @@
+experiment:
+  name: return_prediction
+  task: regression
+  seed: 42
+
+data:
+  dataset_config: configs/datasets/equities.yaml
+  target: log_return
+  target_horizon: 1
+
+model:
+  config: configs/model/fi_jepa_base.yaml
+  finetune_head: return_head
+
+training:
+  config: configs/training/finetune.yaml
+  epochs: 50
+
+metrics:
+  - rmse
+  - mae
+  - spearman
+  - directional_accuracy
+  - correlation
+
+evaluation:
+  rolling_window: 252
+  report_per_asset: true

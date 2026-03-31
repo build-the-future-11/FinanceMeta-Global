@@ -1,0 +1,28 @@
+experiment:
+  name: volatility_forecasting
+  task: regression
+  seed: 42
+
+data:
+  dataset_config: configs/datasets/equities.yaml
+  target: realized_volatility
+  target_horizon: 8
+
+model:
+  config: configs/model/fi_jepa_base.yaml
+  finetune_head: volatility_head
+
+training:
+  config: configs/training/finetune.yaml
+  epochs: 50
+
+metrics:
+  - rmse
+  - mae
+  - r2
+  - correlation
+  - calibration_error
+
+evaluation:
+  rolling_window: 252
+  report_per_asset: true
