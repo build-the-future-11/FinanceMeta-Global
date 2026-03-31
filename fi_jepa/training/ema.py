@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Self
 
 import torch
 import torch.nn as nn
@@ -40,18 +41,18 @@ class EMA:
             target_param.copy_(online_param)
 
     @torch.no_grad()
-    def update(self):
+    def update(ema_self):
         """
         Perform EMA parameter update.
         """
 
         for target_param, online_param in zip(
-            self.target_model.parameters(),
-            self.online_model.parameters(),
+            Self.target_model.parameters(),
+            Self.online_model.parameters(),
         ):
 
-            target_param.mul_(self.tau)
+            target_param.mul_(Self.tau)
             target_param.add_(
                 online_param,
-                alpha=(1.0 - self.tau),
+                alpha=(1.0 - Self.tau),
             )
