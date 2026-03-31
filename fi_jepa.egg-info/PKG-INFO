@@ -1,0 +1,88 @@
+Metadata-Version: 2.4
+Name: fi-jepa
+Version: 0.1.0
+Summary: FI-JEPA: Financial Informed Joint Embedding Predictive Architecture
+Author: Ryan Gomez
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: torch>=2.1.0
+Requires-Dist: numpy>=1.24
+Requires-Dist: pandas>=2.0
+Requires-Dist: scipy>=1.10
+Requires-Dist: scikit-learn>=1.3
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: tqdm>=4.66
+Requires-Dist: matplotlib>=3.7
+Requires-Dist: einops>=0.7
+Dynamic: license-file
+
+torch>=2.1.0
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+pyyaml>=6.0
+tqdm>=4.66
+matplotlib>=3.7
+einops>=0.7# FI-JEPA Architecture
+
+FI-JEPA is a stochastic latent market world model built around three ideas:
+
+1. **Context encoding** of historical market data into a latent market state.
+2. **EMA target encoding** of future windows to provide stable self-supervised targets.
+3. **Operator-aligned latent prediction** that decomposes market dynamics into macro, liquidity, volatility, and residual channels.
+
+## Core flow
+
+Let a multivariate market window be denoted by \( \mathbf{X}_t^c \). The online encoder maps it to a latent state:
+
+\[
+\mathbf{h}_t = f_\theta(\mathbf{X}_t^c).
+\]
+
+A future window \( \mathbf{X}_{t+h}^u \) is mapped by the EMA target encoder:
+
+\[
+\mathbf{z}_{t+h}^{\mathrm{tar}} = f_{\bar{\theta}}(\mathbf{X}_{t+h}^u).
+\]
+
+The predictor bank then produces a stochastic forecast:
+
+\[
+q_\phi(\mathbf{z}_{t+h} \mid \mathbf{h}_t)
+=
+\mathcal{N}\!\left(\boldsymbol{\mu}_{t+h}, \mathrm{diag}(\boldsymbol{\sigma}_{t+h}^2)\right).
+\]
+
+## Operator decomposition
+
+FI-JEPA treats market evolution as an approximate composition of latent sub-operators:
+
+\[
+\mathcal{T}_\tau \approx
+\mathcal{O}_{\mathrm{res}}
+\circ
+\mathcal{O}_{\mathrm{vol}}
+\circ
+\mathcal{O}_{\mathrm{liq}}
+\circ
+\mathcal{O}_{\mathrm{macro}}.
+\]
+
+Each operator is intended to specialize in a different market mechanism:
+
+- **Macro**: slow regime drift and policy/macroeconomic transitions.
+- **Liquidity**: order-flow imbalance, execution pressure, and impact.
+- **Volatility**: clustering, diffusion, and risk propagation.
+- **Residual**: alpha and unexplained short-horizon structure.
+
+## Why this structure matters
+
+Financial data are noisy, partially observed, and nonstationary. Direct reconstruction of raw market values forces the model to explain noise. FI-JEPA instead learns the latent state that persists through time. This is better aligned with tasks like regime detection, portfolio allocation, and risk estimation.
+
+## Diagram
+
+The architecture diagram is generated from the paper and saved as:
+
+`docs/fi_jepa_diagram.png`
