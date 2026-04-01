@@ -1,58 +1,67 @@
 from __future__ import annotations
-from typing import Self
 
+import math
 import torch
 import torch.nn as nn
 
 
-class EMA:
+def update_ema(
+    online_model: nn.Module,
+    target_model: nn.Module,
+    tau: float = 0.996,
+):
     """
-    Exponential Moving Average (EMA) for target encoder updates.
+    Exponential Moving Average update used in JEPA / BYOL style training.
 
-    Used in FI-JEPA to maintain a stable target network
-    similar to BYOL / JEPA style self-supervised training.
-
-    θ_target ← τ θ_target + (1 - τ) θ_online
+    θ_target ← τ θ_target + (1 − τ) θ_online
     """
 
-    def __init__(
-        self,
-        online_model: nn.Module,
-        target_model: nn.Module,
-        tau: float = 0.996,
-    ):
+    with torch.no_grad():
 
-        self.online_model = online_model
-        self.target_model = target_model
-        self.tau = tau
+        online_params = dict(online_model.named_parameters())
+        target_params = dict(target_model.named_parameters())
 
-        self._initialize()
+        for name, param in online_params.items():
 
-    @torch.no_grad()
-    def _initialize(self):
-        """
-        Copy parameters from online model to target model.
-        """
+            if name not in target_params:
+                continue
 
-        for target_param, online_param in zip(
-            self.target_model.parameters(),
-            self.online_model.parameters(),
-        ):
-            target_param.copy_(online_param)
+            target_param = target_params[name]
 
-    @torch.no_grad()
-    def update(ema_self):
-        """
-        Perform EMA parameter update.
-        """
-
-        for target_param, online_param in zip(
-            Self.target_model.parameters(),
-            Self.online_model.parameters(),
-        ):
-
-            target_param.mul_(Self.tau)
-            target_param.add_(
-                online_param,
-                alpha=(1.0 - Self.tau),
+            target_param.data.mul_(tau).add_(
+                param.data,
+                alpha=1 - tau,
             )
+
+
+def copy_weights(
+    online_model: nn.Module,
+    target_model: nn.Module,
+):
+    """
+    Hard copy weights from online to target.
+    """
+
+    target_model.load_state_dict(online_model.state_dict())
+
+    for p in target_model.parameters():
+        p.requires_grad = False
+
+
+def momentum_schedule(
+    step: int,
+    max_steps: int,
+    base_tau: float = 0.996,
+    final_tau: float = 1.0,
+):
+    """
+    Cosine schedule for EMA momentum.
+    """
+
+    progress = step / max_steps
+
+    tau = final_tau - (final_tau - base_tau) * (
+        (math.cos(progress * math.pi) + 1) / 2
+    )
+
+    return tau
