@@ -9,28 +9,17 @@ from fi_jepa.predictors.liquidity_operator import LiquidityOperator
 from fi_jepa.predictors.residual_operator import ResidualOperator
 
 
+
 class PredictorBank(nn.Module):
-    """
-    Operator-aligned predictor bank.
-
-    Combines multiple stochastic operators through learned gating.
-    """
-
-    def __init__(self, latent_dim: int):
-
+    def __init__(
+        self,
+        latent_dim: int,
+        operators: int = 4,
+    ):
         super().__init__()
 
-        self.macro = MacroOperator(latent_dim)
-        self.vol = VolatilityOperator(latent_dim)
-        self.liq = LiquidityOperator(latent_dim)
-        self.res = ResidualOperator(latent_dim)
-
-        self.gate = nn.Sequential(
-            nn.Linear(latent_dim, latent_dim),
-            nn.GELU(),
-            nn.Linear(latent_dim, 4),
-        )
-
+        self.latent_dim = latent_dim
+        self.operators = operators
     def forward(self, z):
 
         g = torch.softmax(self.gate(z), dim=-1)
