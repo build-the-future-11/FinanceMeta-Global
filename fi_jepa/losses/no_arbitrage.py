@@ -1,10 +1,29 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 
-def no_arbitrage_loss(pred_returns):
+class LiquidityRegularizer(nn.Module):
+    """
+    Penalizes unrealistic latent transitions when liquidity is low.
+    """
 
-    drift = pred_returns.mean(dim=0)
+    def __init__(self, strength: float = 0.1):
+        super().__init__()
+        self.strength = strength
 
-    penalty = torch.abs(drift).mean()
+    def forward(
+        self,
+        z_prev: torch.Tensor,
+        z_next: torch.Tensor,
+        liquidity_gate: torch.Tensor,
+    ) -> torch.Tensor:
 
-    return penalty
+        delta = z_next - z_prev
+
+        move_mag = torch.norm(delta, dim=-1)
+
+        # low liquidity should suppress moves
+        penalty = (1.0 - liquidity_gate) * move_mag
+
+        return self.strength * penalty.mean()

@@ -10,7 +10,7 @@ class ResidualOperator(StochasticOperatorBlock):
     """
     Residual operator capturing unexplained market microstructure effects.
 
-    Enhanced with:
+    Enhancements:
     - adaptive residual scaling
     - uncertainty-aware modulation
     - stability constraints
@@ -29,69 +29,58 @@ class ResidualOperator(StochasticOperatorBlock):
             dropout=dropout,
         )
 
-        # -------------------------------------------------
-        # Learnable base scale
-        # -------------------------------------------------
-        self.base_scale = nn.Parameter(torch.tensor(0.3))
+        # Stabilization
+        self.norm = nn.LayerNorm(latent_dim)
 
-        # -------------------------------------------------
-        # Adaptive gating (state-dependent residual strength)
-        # -------------------------------------------------
+        # Base residual strength (log parameterization)
+        self.log_base_scale = nn.Parameter(torch.log(torch.tensor(0.3)))
+
+        # State-dependent gating
         self.adaptive_gate = nn.Sequential(
             nn.LayerNorm(latent_dim),
             nn.Linear(latent_dim, latent_dim),
             nn.GELU(),
             nn.Linear(latent_dim, latent_dim),
-            nn.Sigmoid(),  # keeps scale bounded
+            nn.Sigmoid(),
         )
 
-        # -------------------------------------------------
-        # Uncertainty modulation (from logvar)
-        # -------------------------------------------------
-        self.uncertainty_scale = nn.Parameter(torch.tensor(0.1))
+        # Uncertainty influence
+        self.log_uncertainty_scale = nn.Parameter(torch.log(torch.tensor(0.1)))
 
-    def forward(self, z):
+    def forward(self, z: torch.Tensor):
         """
         Args:
             z: [B, D] or [B, T, D]
 
         Returns:
-            z_next, mu, logvar
+            z_next, mu, sigma
         """
+
+        z = self.norm(z)
 
         z_next, mu, logvar = super().forward(z)
 
-        # -------------------------------------------------
+        # Convert logvar → sigma
+        sigma = torch.exp(0.5 * logvar)
+        sigma = torch.clamp(sigma, min=1e-4, max=5.0)
+
         # Residual delta
-        # -------------------------------------------------
         delta = z_next - z
 
-        # -------------------------------------------------
-        # Adaptive gate (state-aware)
-        # -------------------------------------------------
+        # State-aware gate
         gate = self.adaptive_gate(z)
 
-        # -------------------------------------------------
-        # Uncertainty modulation
-        # higher variance → stronger residual
-        # -------------------------------------------------
-        uncertainty = torch.exp(0.5 * logvar)
+        # Stable parameter transforms
+        base_scale = torch.exp(self.log_base_scale)
+        uncertainty_scale = torch.exp(self.log_uncertainty_scale)
 
-        # -------------------------------------------------
-        # Final scaling
-        # -------------------------------------------------
-        scale = (
-            self.base_scale
-            + gate * 0.5
-            + self.uncertainty_scale * uncertainty
-        )
+        # Residual scaling
+        scale = base_scale + gate * 0.5 + uncertainty_scale * sigma
 
-        # Clamp for stability
-        scale = torch.clamp(scale, 0.0, 2.0)
+        # Stabilize scale
+        scale = torch.clamp(scale, 0.0, 2.5)
 
-        # -------------------------------------------------
-        # Apply residual update
-        # -------------------------------------------------
+        # Residual update
         z_next = z + scale * delta
 
-        return z_next, mu, logvar
+        return z_next, mu, sigma

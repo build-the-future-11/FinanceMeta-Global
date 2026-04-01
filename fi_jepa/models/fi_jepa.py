@@ -19,11 +19,13 @@ from fi_jepa.models.heads import (
 # Structured output
 # -------------------------------------------------------------
 
+
 @dataclass
 class FIJEPAOutput:
-    latent_context: torch.Tensor          # (B, D)
-    latent_predictions: torch.Tensor      # (B, H, D)
-    latent_target: Optional[torch.Tensor] = None  # (B, H, D)
+    latent_context: torch.Tensor
+    latent_predictions: torch.Tensor
+    latent_target: Optional[torch.Tensor] = None
+    operator_weights: Optional[torch.Tensor] = None
 
 
 # -------------------------------------------------------------
@@ -37,8 +39,6 @@ class FIJEPA(nn.Module):
         self,
         input_dim: int,
         latent_dim: int = 256,
-        num_assets: int = 1,
-        context_length: int = 128,
         pred_horizon: int = 16,
         encoder_depth: int = 6,
         encoder_heads: int = 8,
@@ -72,6 +72,15 @@ class FIJEPA(nn.Module):
         self._init_target_encoder()
 
         # -------------------------------------------------
+        # Latent projection
+        # -------------------------------------------------
+
+        self.latent_proj = nn.Sequential(
+            nn.LayerNorm(latent_dim),
+            nn.Linear(latent_dim, latent_dim),
+        )
+
+        # -------------------------------------------------
         # Predictor
         # -------------------------------------------------
 
@@ -87,7 +96,7 @@ class FIJEPA(nn.Module):
         self.risk_head = RiskHead(latent_dim)
 
         # -------------------------------------------------
-        # Norm
+        # Normalization
         # -------------------------------------------------
 
         self.norm = nn.LayerNorm(latent_dim)
@@ -97,9 +106,11 @@ class FIJEPA(nn.Module):
     # -------------------------------------------------------------
 
     def _init_target_encoder(self):
+
         self.target_encoder.load_state_dict(
             self.context_encoder.state_dict()
         )
+
         for p in self.target_encoder.parameters():
             p.requires_grad = False
 
@@ -108,35 +119,48 @@ class FIJEPA(nn.Module):
     # -------------------------------------------------------------
 
     def encode_context(self, x: torch.Tensor) -> torch.Tensor:
-        z = self.context_encoder(x)        # (B, T, D)
-        z = self.norm(z)
-        return z[:, -1]                   # 🔥 ONLY LAST TOKEN
 
-    def encode_target(self, x: torch.Tensor) -> torch.Tensor:
+        z = self.context_encoder(x)  # (B,T,D)
+        z = self.norm(z)
+
+        z = z[:, -1]                 # last token
+        z = self.latent_proj(z)
+
+        return z                     # (B,D)
+
+    def encode_target(self, x: torch.Tensor):
+
         with torch.no_grad():
-            z = self.target_encoder(x)   # (B, T, D)
+
+            z = self.target_encoder(x)
             z = self.norm(z)
-        return z                         # (B, T, D)
+
+        return z
 
     # -------------------------------------------------------------
     # Latent rollout
     # -------------------------------------------------------------
 
-    def rollout(self, z0: torch.Tensor) -> torch.Tensor:
-        """
-        z0: (B, D)
-        returns: (B, H, D)
-        """
+    def rollout(self, z0: torch.Tensor):
 
         z = z0
+
         preds = []
+        weights = []
 
         for _ in range(self.pred_horizon):
-            z = self.predictor(z)        # (B, D)
-            z = self.norm(z)
-            preds.append(z)
 
-        return torch.stack(preds, dim=1)
+            z, w, _ = self.predictor(z)
+
+            z = self.norm(z)
+
+            preds.append(z)
+            weights.append(w)
+
+        preds = torch.stack(preds, dim=1)
+        weights = torch.stack(weights, dim=1)
+
+        return preds, weights
 
     # -------------------------------------------------------------
     # Forward
@@ -148,29 +172,31 @@ class FIJEPA(nn.Module):
         target_window: Optional[torch.Tensor] = None,
     ) -> FIJEPAOutput:
 
-        z_context = self.encode_context(context_window)     # (B, D)
+        z_context = self.encode_context(context_window)
 
-        latent_preds = self.rollout(z_context)              # (B, H, D)
+        latent_preds, op_weights = self.rollout(z_context)
 
         z_target = None
 
         if target_window is not None:
-            z_t = self.encode_target(target_window)         # (B, T, D)
 
-            # 🔥 Align with prediction horizon
-            z_target = z_t[:, : self.pred_horizon, :]       # (B, H, D)
+            z_t = self.encode_target(target_window)
+
+            z_target = z_t[:, : self.pred_horizon, :]
 
         return FIJEPAOutput(
             latent_context=z_context,
             latent_predictions=latent_preds,
             latent_target=z_target,
+            operator_weights=op_weights,
         )
 
     # -------------------------------------------------------------
     # Feature extraction
     # -------------------------------------------------------------
 
-    def extract_features(self, x: torch.Tensor) -> torch.Tensor:
+    def extract_features(self, x: torch.Tensor):
+
         return self.encode_context(x)
 
     # -------------------------------------------------------------
@@ -178,15 +204,19 @@ class FIJEPA(nn.Module):
     # -------------------------------------------------------------
 
     def predict_returns(self, x: torch.Tensor):
+
         return self.return_head(self.extract_features(x))
 
     def predict_volatility(self, x: torch.Tensor):
+
         return self.volatility_head(self.extract_features(x))
 
     def predict_regime(self, x: torch.Tensor):
+
         return self.regime_head(self.extract_features(x))
 
     def predict_risk(self, x: torch.Tensor):
+
         return self.risk_head(self.extract_features(x))
 
     # -------------------------------------------------------------
@@ -200,6 +230,7 @@ class FIJEPA(nn.Module):
             self.target_encoder.parameters(),
             self.context_encoder.parameters(),
         ):
+
             t.data.mul_(tau).add_(s.data, alpha=(1 - tau))
 
     # -------------------------------------------------------------
@@ -207,9 +238,11 @@ class FIJEPA(nn.Module):
     # -------------------------------------------------------------
 
     def freeze_encoder(self):
+
         for p in self.context_encoder.parameters():
             p.requires_grad = False
 
     def unfreeze_encoder(self):
+
         for p in self.context_encoder.parameters():
             p.requires_grad = True
