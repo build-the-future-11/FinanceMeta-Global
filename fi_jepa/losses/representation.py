@@ -1,3 +1,7 @@
+import torch
+from torch import nn
+
+
 class MacroRegimeRegularizer(nn.Module):
     """
     Encourages smooth macro regime evolution.

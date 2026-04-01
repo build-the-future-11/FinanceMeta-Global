@@ -1,4 +1,6 @@
 import torch
+from torch import nn
+from torch.compiler import F
 
 
 class MacroRegimeRegularizer(nn.Module):
