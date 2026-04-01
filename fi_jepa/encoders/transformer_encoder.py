@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal
+
 import torch
 from torch import nn, Tensor
 
@@ -45,20 +46,25 @@ class TransformerEncoder(nn.Module):
         )
         self.encoder = nn.TransformerEncoder(layer, num_layers=depth)
         self.norm = nn.LayerNorm(embed_dim)
-        self.pool = nn.AdaptiveAvgPool1d(1)
 
-    def forward(self, x: Tensor, return_sequence: bool = False) -> Tensor | tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor, return_sequence: bool = True) -> Tensor:
         """
-        x: [B, T, F]
-        returns:
-            sequence: [B, T, D]
-            pooled:   [B, D]
+        Args:
+            x: [B, T, F]
+            return_sequence:
+                True  -> return latent sequence [B, T, D]
+                False -> return pooled latent [B, D]
+
+        Returns:
+            Tensor of shape [B, T, D] or [B, D]
         """
         h = self.input_embed(x)
         h = self.pos_encoding(h)
         h = self.encoder(h)
         h = self.norm(h)
-        pooled = self.pool(h.transpose(1, 2)).squeeze(-1)
+
         if return_sequence:
-            return h, pooled
-        return pooled
+            return h
+
+        # Mean pooling over time for a single latent summary.
+        return h.mean(dim=1)

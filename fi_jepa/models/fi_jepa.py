@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 from dataclasses import dataclass
-from typing import Optional, Dict
+from typing import Optional
 
 from fi_jepa.encoders.transformer_encoder import TransformerEncoder
 from fi_jepa.models.predictor_bank import PredictorBank
@@ -16,15 +16,14 @@ from fi_jepa.models.heads import (
 
 
 # -------------------------------------------------------------
-# Structured output (cleaner than dicts)
+# Structured output
 # -------------------------------------------------------------
 
 @dataclass
 class FIJEPAOutput:
-
-    latent_context: torch.Tensor
-    latent_predictions: torch.Tensor
-    latent_target: Optional[torch.Tensor] = None
+    latent_context: torch.Tensor          # (B, D)
+    latent_predictions: torch.Tensor      # (B, H, D)
+    latent_target: Optional[torch.Tensor] = None  # (B, H, D)
 
 
 # -------------------------------------------------------------
@@ -33,12 +32,6 @@ class FIJEPAOutput:
 
 
 class FIJEPA(nn.Module):
-    """
-    Financial Joint Embedding Predictive Architecture
-
-    Learns latent market dynamics by predicting future embeddings
-    instead of reconstructing raw observations.
-    """
 
     def __init__(
         self,
@@ -53,31 +46,24 @@ class FIJEPA(nn.Module):
     ):
         super().__init__()
 
-        self.input_dim = input_dim
         self.latent_dim = latent_dim
-        self.num_assets = num_assets
-        self.context_length = context_length
         self.pred_horizon = pred_horizon
 
         # -------------------------------------------------
-        # Context Encoder
+        # Encoders
         # -------------------------------------------------
 
         self.context_encoder = TransformerEncoder(
             input_dim=input_dim,
-            latent_dim=latent_dim,
+            embed_dim=latent_dim,
             depth=encoder_depth,
             heads=encoder_heads,
             dropout=dropout,
         )
 
-        # -------------------------------------------------
-        # Target Encoder (EMA)
-        # -------------------------------------------------
-
         self.target_encoder = TransformerEncoder(
             input_dim=input_dim,
-            latent_dim=latent_dim,
+            embed_dim=latent_dim,
             depth=encoder_depth,
             heads=encoder_heads,
             dropout=dropout,
@@ -86,13 +72,10 @@ class FIJEPA(nn.Module):
         self._init_target_encoder()
 
         # -------------------------------------------------
-        # Predictor Bank
+        # Predictor
         # -------------------------------------------------
 
-        self.predictor = PredictorBank(
-            latent_dim=latent_dim,
-            num_assets=num_assets,
-        )
+        self.predictor = PredictorBank(latent_dim)
 
         # -------------------------------------------------
         # Heads
@@ -104,21 +87,19 @@ class FIJEPA(nn.Module):
         self.risk_head = RiskHead(latent_dim)
 
         # -------------------------------------------------
-        # Stabilization Layers
+        # Norm
         # -------------------------------------------------
 
-        self.latent_norm = nn.LayerNorm(latent_dim)
+        self.norm = nn.LayerNorm(latent_dim)
 
     # -------------------------------------------------------------
-    # Target encoder initialization
+    # Target encoder init
     # -------------------------------------------------------------
 
     def _init_target_encoder(self):
-
         self.target_encoder.load_state_dict(
             self.context_encoder.state_dict()
         )
-
         for p in self.target_encoder.parameters():
             p.requires_grad = False
 
@@ -127,59 +108,38 @@ class FIJEPA(nn.Module):
     # -------------------------------------------------------------
 
     def encode_context(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Encode historical market context.
-
-        Args
-        ----
-        x : (B, T, F)
-
-        Returns
-        -------
-        (B, T, D)
-        """
-
-        z = self.context_encoder(x)
-
-        return self.latent_norm(z)
+        z = self.context_encoder(x)        # (B, T, D)
+        z = self.norm(z)
+        return z[:, -1]                   # 🔥 ONLY LAST TOKEN
 
     def encode_target(self, x: torch.Tensor) -> torch.Tensor:
-
         with torch.no_grad():
-
-            z = self.target_encoder(x)
-
-        return self.latent_norm(z)
+            z = self.target_encoder(x)   # (B, T, D)
+            z = self.norm(z)
+        return z                         # (B, T, D)
 
     # -------------------------------------------------------------
     # Latent rollout
     # -------------------------------------------------------------
 
-    def rollout(self, z_context: torch.Tensor) -> torch.Tensor:
+    def rollout(self, z0: torch.Tensor) -> torch.Tensor:
         """
-        Multi-step latent prediction.
-
-        Returns
-        -------
-        (B, H, T, D)
+        z0: (B, D)
+        returns: (B, H, D)
         """
 
-        z = z_context
-
+        z = z0
         preds = []
 
         for _ in range(self.pred_horizon):
-
-            z = self.predictor(z)
-
-            z = self.latent_norm(z)
-
+            z = self.predictor(z)        # (B, D)
+            z = self.norm(z)
             preds.append(z)
 
         return torch.stack(preds, dim=1)
 
     # -------------------------------------------------------------
-    # Forward (JEPA training)
+    # Forward
     # -------------------------------------------------------------
 
     def forward(
@@ -188,14 +148,17 @@ class FIJEPA(nn.Module):
         target_window: Optional[torch.Tensor] = None,
     ) -> FIJEPAOutput:
 
-        z_context = self.encode_context(context_window)
+        z_context = self.encode_context(context_window)     # (B, D)
 
-        latent_preds = self.rollout(z_context)
+        latent_preds = self.rollout(z_context)              # (B, H, D)
 
         z_target = None
 
         if target_window is not None:
-            z_target = self.encode_target(target_window)
+            z_t = self.encode_target(target_window)         # (B, T, D)
+
+            # 🔥 Align with prediction horizon
+            z_target = z_t[:, : self.pred_horizon, :]       # (B, H, D)
 
         return FIJEPAOutput(
             latent_context=z_context,
@@ -204,80 +167,49 @@ class FIJEPA(nn.Module):
         )
 
     # -------------------------------------------------------------
-    # Latent feature extraction
+    # Feature extraction
     # -------------------------------------------------------------
 
     def extract_features(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Returns final timestep latent.
-
-        Useful for downstream models.
-        """
-
-        z = self.encode_context(x)
-
-        return z[:, -1]
+        return self.encode_context(x)
 
     # -------------------------------------------------------------
-    # Downstream predictions
+    # Heads
     # -------------------------------------------------------------
 
     def predict_returns(self, x: torch.Tensor):
-
-        z = self.extract_features(x)
-
-        return self.return_head(z)
+        return self.return_head(self.extract_features(x))
 
     def predict_volatility(self, x: torch.Tensor):
-
-        z = self.extract_features(x)
-
-        return self.volatility_head(z)
+        return self.volatility_head(self.extract_features(x))
 
     def predict_regime(self, x: torch.Tensor):
-
-        z = self.extract_features(x)
-
-        return self.regime_head(z)
+        return self.regime_head(self.extract_features(x))
 
     def predict_risk(self, x: torch.Tensor):
-
-        z = self.extract_features(x)
-
-        return self.risk_head(z)
+        return self.risk_head(self.extract_features(x))
 
     # -------------------------------------------------------------
-    # EMA Update
+    # EMA update
     # -------------------------------------------------------------
 
     @torch.no_grad()
     def update_target_encoder(self, tau: float = 0.996):
-        """
-        EMA update
 
-        θ_target ← τ θ_target + (1 − τ) θ_online
-        """
-
-        for target_param, online_param in zip(
+        for t, s in zip(
             self.target_encoder.parameters(),
             self.context_encoder.parameters(),
         ):
-
-            target_param.data.mul_(tau).add_(
-                online_param.data,
-                alpha=(1 - tau),
-            )
+            t.data.mul_(tau).add_(s.data, alpha=(1 - tau))
 
     # -------------------------------------------------------------
-    # Utility
+    # Freeze utils
     # -------------------------------------------------------------
 
     def freeze_encoder(self):
-
         for p in self.context_encoder.parameters():
             p.requires_grad = False
 
     def unfreeze_encoder(self):
-
         for p in self.context_encoder.parameters():
             p.requires_grad = True

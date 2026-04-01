@@ -11,12 +11,12 @@ class LiquidityOperator(StochasticOperatorBlock):
     Captures order flow and liquidity shocks.
     """
 
-    def __init__(self, latent_dim: int):
+    def __init__(self, latent_dim: int, hidden_dim: int | None = None, dropout: float = 0.1):
         super().__init__(
             latent_dim=latent_dim,
-            hidden_dim=latent_dim * 2,
+            hidden_dim=hidden_dim or (latent_dim * 2),
             num_layers=2,
-            dropout=0.1,
+            dropout=dropout,
         )
 
         self.liquidity_gate = nn.Sequential(
@@ -25,7 +25,6 @@ class LiquidityOperator(StochasticOperatorBlock):
         )
 
     def forward(self, z):
-
         gate = self.liquidity_gate(z)
 
         z_next, mu, logvar = super().forward(z)

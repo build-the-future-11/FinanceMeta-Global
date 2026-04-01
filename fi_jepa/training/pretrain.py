@@ -1,83 +1,47 @@
 from __future__ import annotations
+
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-
-from fi_jepa.training.ema import EMA
 
 
-class FIJEPATrainer:
+class EMA:
+    """
+    Exponential Moving Average for FI-JEPA target encoders.
+
+    Keeps the target encoder as a moving average of the online/context encoder.
+    """
 
     def __init__(
         self,
-        model: nn.Module,
-        optimizer: torch.optim.Optimizer,
-        loss_fn,
-        device: str = "cuda",
-        ema_tau: float = 0.996,
+        online_model: nn.Module,
+        target_model: nn.Module,
+        tau: float = 0.996,
     ):
+        self.online_model = online_model
+        self.target_model = target_model
+        self.tau = tau
 
-        self.model = model.to(device)
-        self.device = device
-
-        self.optimizer = optimizer
-        self.loss_fn = loss_fn
-
-        self.ema = EMA(
-            online_model=self.model.context_encoder,
-            target_model=self.model.target_encoder,
-            tau=ema_tau,
-        )
-
-    def train_epoch(self, loader: DataLoader):
-
-        self.model.train()
-
-        total_loss = 0.0
-
-        for batch in tqdm(loader):
-
-            context = batch["context"].to(self.device)
-            target = batch["target"].to(self.device)
-
-            self.optimizer.zero_grad()
-
-            pred_latent, target_latent = self.model(context, target)
-
-            loss = self.loss_fn(pred_latent, target_latent)
-
-            loss.backward()
-
-            torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(),
-                1.0,
-            )
-
-            self.optimizer.step()
-
-            self.ema.update()
-
-            total_loss += loss.item()
-
-        return total_loss / len(loader)
+        self._initialize()
 
     @torch.no_grad()
-    def validate(self, loader):
+    def _initialize(self):
+        """
+        Copy online weights into target weights before training starts.
+        """
+        self.target_model.load_state_dict(self.online_model.state_dict(), strict=True)
 
-        self.model.eval()
+        for param in self.target_model.parameters():
+            param.requires_grad = False
 
-        total_loss = 0.0
-
-        for batch in loader:
-
-            context = batch["context"].to(self.device)
-            target = batch["target"].to(self.device)
-
-            pred_latent, target_latent = self.model(context, target)
-
-            loss = self.loss_fn(pred_latent, target_latent)
-
-            total_loss += loss.item()
-
-        return total_loss / len(loader)
+    @torch.no_grad()
+    def update(self):
+        """
+        EMA update:
+            target = tau * target + (1 - tau) * online
+        """
+        for target_param, online_param in zip(
+            self.target_model.parameters(),
+            self.online_model.parameters(),
+        ):
+            target_param.mul_(self.tau)
+            target_param.add_(online_param, alpha=1.0 - self.tau)
