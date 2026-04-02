@@ -6,88 +6,74 @@ import torch.nn as nn
 
 
 class TargetEncoder(nn.Module):
-    """
-    Target encoder used in JEPA-style training.
-
-    Characteristics
-    ----------------
-    • Mirror of the context encoder
-    • Parameters never receive gradients
-    • Updated only via EMA
-    • Always runs in eval mode
-    """
 
     def __init__(self, context_encoder: nn.Module):
         super().__init__()
-
-        # Deep copy architecture + weights
         self.encoder = copy.deepcopy(context_encoder)
+        self._freeze()
+        self.encoder.eval()
 
-        # Freeze parameters
+    def _freeze(self):
         for p in self.encoder.parameters():
             p.requires_grad = False
 
-        self.encoder.eval()
+    def _sync_buffers(self, online_encoder: nn.Module):
+        online_buffers = dict(online_encoder.named_buffers())
+        target_buffers = dict(self.encoder.named_buffers())
 
-    # -------------------------------------------------------------
-    # Forward
-    # -------------------------------------------------------------
+        for name, buffer in online_buffers.items():
+            if name in target_buffers:
+                target_buffers[name].data.copy_(buffer.data)
 
     @torch.no_grad()
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass through frozen encoder.
-
-        Args
-        ----
-        x : tensor
-            shape (B, T, D)
-
-        Returns
-        -------
-        latent : tensor
-            shape (B, T, latent_dim)
-        """
-
-        return self.encoder(x)
-
-    # -------------------------------------------------------------
-    # EMA update
-    # -------------------------------------------------------------
+        self.encoder.eval()
+        with torch.inference_mode():
+            return self.encoder(x)
 
     @torch.no_grad()
-    def ema_update(self, online_encoder: nn.Module, tau: float = 0.996):
-        """
-        Update target parameters via exponential moving average.
+    def hard_update(self, online_encoder: nn.Module):
+        self.encoder.load_state_dict(online_encoder.state_dict(), strict=True)
+        self._freeze()
+        self.encoder.eval()
 
-        θ_target ← τ θ_target + (1 − τ) θ_online
-        """
+    @torch.no_grad()
+    def ema_update(
+        self,
+        online_encoder: nn.Module,
+        tau: float = 0.996,
+        update_buffers: bool = True,
+    ):
+        tau = float(tau)
+        if not 0.0 <= tau <= 1.0:
+            raise ValueError("tau must be in [0, 1].")
 
-        for t_param, o_param in zip(
-            self.encoder.parameters(),
-            online_encoder.parameters(),
-        ):
-            t_param.data.mul_(tau).add_(o_param.data, alpha=1 - tau)
+        online_params = dict(online_encoder.named_parameters())
+        target_params = dict(self.encoder.named_parameters())
 
-    # -------------------------------------------------------------
-    # Device sync
-    # -------------------------------------------------------------
+        for name, target_param in target_params.items():
+            if name not in online_params:
+                continue
+            online_param = online_params[name]
+            target_param.data.mul_(tau).add_(online_param.data, alpha=1.0 - tau)
+
+        if update_buffers:
+            self._sync_buffers(online_encoder)
+
+        self.encoder.eval()
 
     def to(self, *args, **kwargs):
         self.encoder = self.encoder.to(*args, **kwargs)
         return self
 
-    # -------------------------------------------------------------
-    # Mode safety
-    # -------------------------------------------------------------
-
     def train(self, mode: bool = True):
-        """
-        Prevent switching out of eval mode.
-        """
+        super().train(False)
         self.encoder.eval()
+        self._freeze()
         return self
 
     def eval(self):
+        super().eval()
         self.encoder.eval()
+        self._freeze()
         return self
