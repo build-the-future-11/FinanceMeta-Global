@@ -12,15 +12,12 @@ from fi_jepa.predictors.residual_operator import ResidualOperator
 
 class PredictorBank(nn.Module):
     """
-    Mixture-of-operators latent transition module.
+    Mixture-of-operators latent dynamics module.
 
-    Supports both:
-        - z: [B, D]
-        - z: [B, T, D]
-
-    Each operator must return either:
-        - Tensor
-        - or a tuple whose first element is the predicted latent tensor
+    Upgrades:
+    - Multi-step prediction (temporal rollout)
+    - Iterative latent evolution (world-model style)
+    - Stable gating
     """
 
     def __init__(
@@ -29,17 +26,20 @@ class PredictorBank(nn.Module):
         hidden_dim: int | None = None,
         dropout: float = 0.1,
         operators: int = 4,
+        horizon: int = 1,  # 🔥 NEW
     ):
         super().__init__()
 
         if operators != 4:
-            raise ValueError(
-                f"PredictorBank currently expects 4 operators, got {operators}."
-            )
+            raise ValueError("PredictorBank currently expects 4 operators.")
 
         self.latent_dim = latent_dim
         self.hidden_dim = hidden_dim or (2 * latent_dim)
-        self.operators = operators
+        self.horizon = horizon
+
+        # ---------------------------------------------------------
+        # Gating network (slightly more stable)
+        # ---------------------------------------------------------
 
         self.gate = nn.Sequential(
             nn.LayerNorm(latent_dim),
@@ -49,89 +49,94 @@ class PredictorBank(nn.Module):
             nn.Linear(self.hidden_dim, operators),
         )
 
-        self.macro = MacroOperator(
-            latent_dim=latent_dim,
-            hidden_dim=self.hidden_dim,
-            dropout=dropout,
-        )
-        self.vol = VolatilityOperator(
-            latent_dim=latent_dim,
-            hidden_dim=self.hidden_dim,
-            dropout=dropout,
-        )
-        self.liq = LiquidityOperator(
-            latent_dim=latent_dim,
-            hidden_dim=self.hidden_dim,
-            dropout=dropout,
-        )
-        self.res = ResidualOperator(
-            latent_dim=latent_dim,
-            hidden_dim=self.hidden_dim,
-            dropout=dropout,
-        )
+        # ---------------------------------------------------------
+        # Operators
+        # ---------------------------------------------------------
+
+        self.operators = nn.ModuleList([
+            MacroOperator(latent_dim, self.hidden_dim, dropout),
+            VolatilityOperator(latent_dim, self.hidden_dim, dropout),
+            LiquidityOperator(latent_dim, self.hidden_dim, dropout),
+            ResidualOperator(latent_dim, self.hidden_dim, dropout),
+        ])
+
+    # ---------------------------------------------------------
+    # Utils
+    # ---------------------------------------------------------
 
     @staticmethod
     def _latent_only(output):
-        if isinstance(output, tuple):
-            return output[0]
-        return output
+        return output[0] if isinstance(output, tuple) else output
 
     @staticmethod
     def _routing_state(z: Tensor) -> Tensor:
-        if z.dim() == 3:
-            return z[:, -1, :]
+        return z[:, -1] if z.dim() == 3 else z
+
+    def _apply_operators(self, z: Tensor) -> list[Tensor]:
+        outputs = []
+        for op in self.operators:
+            out = self._latent_only(op(z))
+            if out.shape != z.shape:
+                raise ValueError(
+                    f"Operator output shape {tuple(out.shape)} "
+                    f"does not match input shape {tuple(z.shape)}"
+                )
+            outputs.append(out)
+        return outputs
+
+    # ---------------------------------------------------------
+    # Single-step transition
+    # ---------------------------------------------------------
+
+    def step(self, z: Tensor) -> Tensor:
+        route_z = self._routing_state(z)
+
+        # [B, num_ops]
+        g = torch.softmax(self.gate(route_z), dim=-1)
+
+        op_outputs = self._apply_operators(z)
+
         if z.dim() == 2:
-            return z
-        raise ValueError(f"Expected latent tensor with 2 or 3 dims, got shape {tuple(z.shape)}")
+            z_next = sum(
+                g[:, i:i+1] * op_outputs[i]
+                for i in range(len(op_outputs))
+            )
+            return z_next
+
+        # z: [B, T, D]
+        g = g.unsqueeze(1)  # [B, 1, num_ops]
+
+        z_next = sum(
+            g[..., i:i+1] * op_outputs[i]
+            for i in range(len(op_outputs))
+        )
+
+        return z_next
+
+    # ---------------------------------------------------------
+    # Multi-step rollout (🔥 BIG UPGRADE)
+    # ---------------------------------------------------------
 
     def forward(self, z: Tensor) -> Tensor:
         """
         Args:
-            z:
-                [B, D] or [B, T, D]
+            z: [B, D] or [B, T, D]
 
         Returns:
-            Next latent with the same rank as the input.
+            If horizon == 1:
+                same shape as input
+            Else:
+                [B, H, D] or [B, H, T, D]
         """
-        route_z = self._routing_state(z)
-        g = torch.softmax(self.gate(route_z), dim=-1)
 
-        z_macro = self._latent_only(self.macro(z))
-        z_vol = self._latent_only(self.vol(z))
-        z_liq = self._latent_only(self.liq(z))
-        z_res = self._latent_only(self.res(z))
+        if self.horizon == 1:
+            return self.step(z)
 
-        if z_macro.shape != z.shape:
-            raise ValueError(
-                f"Macro operator output shape {tuple(z_macro.shape)} does not match input shape {tuple(z.shape)}"
-            )
-        if z_vol.shape != z.shape:
-            raise ValueError(
-                f"Volatility operator output shape {tuple(z_vol.shape)} does not match input shape {tuple(z.shape)}"
-            )
-        if z_liq.shape != z.shape:
-            raise ValueError(
-                f"Liquidity operator output shape {tuple(z_liq.shape)} does not match input shape {tuple(z.shape)}"
-            )
-        if z_res.shape != z.shape:
-            raise ValueError(
-                f"Residual operator output shape {tuple(z_res.shape)} does not match input shape {tuple(z.shape)}"
-            )
+        preds = []
+        z_curr = z
 
-        if z.dim() == 2:
-            g0 = g[:, 0:1]
-            g1 = g[:, 1:2]
-            g2 = g[:, 2:3]
-            g3 = g[:, 3:4]
-            z_next = g0 * z_macro + g1 * z_vol + g2 * z_liq + g3 * z_res
-            return z_next
+        for _ in range(self.horizon):
+            z_curr = self.step(z_curr)
+            preds.append(z_curr)
 
-        # z.dim() == 3
-        g = g.unsqueeze(1)  # [B, 1, 4]
-        z_next = (
-            g[..., 0:1] * z_macro
-            + g[..., 1:2] * z_vol
-            + g[..., 2:3] * z_liq
-            + g[..., 3:4] * z_res
-        )
-        return z_next
+        return torch.stack(preds, dim=1)

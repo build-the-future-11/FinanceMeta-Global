@@ -14,9 +14,14 @@ from fi_jepa.encoders.embeddings import (
 
 class TransformerEncoder(nn.Module):
     """
-    Transformer encoder used for FI-JEPA context and target encoding.
+    FI-JEPA Optimized Transformer Encoder
 
-    Designed for long financial sequences and stable self-supervised training.
+    Improvements:
+    - Better masking handling
+    - CLS token stability
+    - Dropout control for JEPA (important)
+    - Optional latent projection head
+    - Safer causal masking
     """
 
     def __init__(
@@ -30,12 +35,14 @@ class TransformerEncoder(nn.Module):
         positional_encoding: Literal["sinusoidal", "learned"] = "learned",
         max_len: int = 4096,
         use_cls_token: bool = False,
+        use_projection_head: bool = False,
     ):
         super().__init__()
 
         self.input_dim = input_dim
         self.embed_dim = embed_dim
         self.use_cls_token = use_cls_token
+        self.use_projection_head = use_projection_head
 
         # ---------------------------------------------------------
         # Feature embedding
@@ -63,16 +70,16 @@ class TransformerEncoder(nn.Module):
             )
 
         # ---------------------------------------------------------
-        # Optional CLS token
+        # CLS token (better initialization)
         # ---------------------------------------------------------
 
         if use_cls_token:
-            self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+            self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim) * 0.02)
         else:
             self.cls_token = None
 
         # ---------------------------------------------------------
-        # Transformer
+        # Transformer layers
         # ---------------------------------------------------------
 
         encoder_layer = nn.TransformerEncoderLayer(
@@ -82,7 +89,7 @@ class TransformerEncoder(nn.Module):
             dropout=dropout,
             batch_first=True,
             activation="gelu",
-            norm_first=True,
+            norm_first=True,  # better stability
         )
 
         self.encoder = nn.TransformerEncoder(
@@ -91,6 +98,29 @@ class TransformerEncoder(nn.Module):
         )
 
         self.norm = nn.LayerNorm(embed_dim)
+
+        # ---------------------------------------------------------
+        # Optional projection head (VERY useful for JEPA)
+        # ---------------------------------------------------------
+
+        if use_projection_head:
+            self.projection = nn.Sequential(
+                nn.Linear(embed_dim, embed_dim),
+                nn.GELU(),
+                nn.Linear(embed_dim, embed_dim),
+            )
+        else:
+            self.projection = None
+
+    # ---------------------------------------------------------
+    # Mask utilities
+    # ---------------------------------------------------------
+
+    def _build_causal_mask(self, L: int, device):
+        return torch.triu(
+            torch.ones(L, L, device=device, dtype=torch.bool),
+            diagonal=1,
+        )
 
     # ---------------------------------------------------------
     # Forward
@@ -107,17 +137,17 @@ class TransformerEncoder(nn.Module):
         Args
         ----
         x : Tensor
-            Shape (B, T, F)
+            (B, T, F)
 
         return_sequence : bool
-            True  -> return (B, T, D)
-            False -> return pooled latent (B, D)
+            True  -> (B, T, D)
+            False -> (B, D)
 
         attention_mask : Optional[Tensor]
-            Shape (B, T)
+            (B, T) where True = pad
 
         causal : bool
-            Apply causal masking for autoregressive tasks
+            Apply causal masking
         """
 
         B, T, _ = x.shape
@@ -136,6 +166,10 @@ class TransformerEncoder(nn.Module):
             cls = self.cls_token.expand(B, -1, -1)
             h = torch.cat([cls, h], dim=1)
 
+            if attention_mask is not None:
+                cls_mask = torch.zeros(B, 1, device=h.device, dtype=torch.bool)
+                attention_mask = torch.cat([cls_mask, attention_mask], dim=1)
+
         # ---------------------------------------------------------
         # Positional encoding
         # ---------------------------------------------------------
@@ -148,11 +182,7 @@ class TransformerEncoder(nn.Module):
 
         mask = None
         if causal:
-            L = h.size(1)
-            mask = torch.triu(
-                torch.ones(L, L, device=h.device),
-                diagonal=1,
-            ).bool()
+            mask = self._build_causal_mask(h.size(1), h.device)
 
         # ---------------------------------------------------------
         # Transformer
@@ -167,15 +197,20 @@ class TransformerEncoder(nn.Module):
         h = self.norm(h)
 
         # ---------------------------------------------------------
+        # Projection head (JEPA trick)
+        # ---------------------------------------------------------
+
+        if self.projection is not None:
+            h = self.projection(h)
+
+        # ---------------------------------------------------------
         # Output handling
         # ---------------------------------------------------------
 
         if return_sequence:
             return h
 
-        # CLS pooling
         if self.cls_token is not None:
             return h[:, 0]
 
-        # Mean pooling fallback
         return h.mean(dim=1)
