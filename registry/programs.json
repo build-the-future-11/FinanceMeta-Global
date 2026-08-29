@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "last_verified": "2026-08-29",
+  "programs": [
+    {"id":"labs","name":"Labs","status":"planned_until_evidence_record","minimum_evidence_level":"E1","launch_gate":"named lead, research question, baseline, data provenance, reproducible artifact, review cadence, final artifact requirement, evidence ledger"},
+    {"id":"axiom-pathways","name":"Axiom Pathways","status":"planned_until_evidence_record","minimum_evidence_level":"E1","launch_gate":"syllabus, prerequisites, exercises/projects, completion rule, progress record, final artifact"},
+    {"id":"debrief","name":"Debrief","status":"planned_until_evidence_record","minimum_evidence_level":"E1","launch_gate":"editorial standard, sources/citations, correction policy, attribution, analysis/opinion/advice boundary"},
+    {"id":"fintech-studio","name":"FinTech Studio","status":"planned_until_evidence_record","minimum_evidence_level":"E1","launch_gate":"problem/user, working repository, security/privacy review where needed, testable demo, usage evidence before adoption claims"},
+    {"id":"chapters","name":"Chapters","status":"planned_until_evidence_record","minimum_evidence_level":"E2","launch_gate":"chapter lead plus qualifying evidence-backed output; active status requires output within trailing 45 days"},
+    {"id":"fellowship","name":"Fellowship","status":"planned_until_evidence_record","minimum_evidence_level":"E1","launch_gate":"application rubric, project matching, milestone schedule, reviewers, feedback record, final release gate"},
+    {"id":"quant-competition","name":"Investment / Quantitative Competition","status":"planned_until_evidence_record","minimum_evidence_level":"E1","launch_gate":"frozen rules, scoring rubric, conflict policy, data/time-window rules, anti-leakage requirements, reproducible judging record"}
+  ]
+}
