@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-29",
+  "evidence_policy": "OPERATING_SYSTEM_2026.md",
+  "default_rule": "A program remains planned until a linked evidence record satisfies its launch gate.",
+  "programs": [
+    {
+      "id": "labs",
+      "name": "FinanceMeta Labs",
+      "family": "research",
+      "status": "PLANNED_UNVERIFIED",
+      "evidence_level": "E0",
+      "claim_boundary": "Program family specified; this registry does not establish an active cohort or completed research output.",
+      "evidence_records": []
+    },
+    {
+      "id": "axiom-pathways",
+      "name": "Axiom Pathways",
+      "family": "education",
+      "status": "PLANNED_UNVERIFIED",
+      "evidence_level": "E0",
+      "claim_boundary": "Program family specified; no completion or participant-outcome claim is established here.",
+      "evidence_records": []
+    },
+    {
+      "id": "debrief",
+      "name": "Debrief",
+      "family": "publication",
+      "status": "PLANNED_UNVERIFIED",
+      "evidence_level": "E0",
+      "claim_boundary": "Editorial program specified; no publication cadence or audience claim is established here.",
+      "evidence_records": []
+    },
+    {
+      "id": "fintech-studio",
+      "name": "FinTech Studio",
+      "family": "builder",
+      "status": "PLANNED_UNVERIFIED",
+      "evidence_level": "E0",
+      "claim_boundary": "Builder program specified; no deployed product, real-user, or revenue claim is established here.",
+      "evidence_records": []
+    },
+    {
+      "id": "chapters",
+      "name": "FinanceMeta Chapters",
+      "family": "network",
+      "status": "PLANNED_UNVERIFIED",
+      "evidence_level": "E0",
+      "claim_boundary": "Chapter system specified; active chapters must satisfy the trailing-45-day evidence rule individually.",
+      "evidence_records": []
+    },
+    {
+      "id": "fellowship",
+      "name": "FinanceMeta Fellowship",
+      "family": "talent",
+      "status": "PLANNED_UNVERIFIED",
+      "evidence_level": "E0",
+      "claim_boundary": "Fellowship structure specified; no selection rate, participant count, or outcome claim is established here.",
+      "evidence_records": []
+    },
+    {
+      "id": "quant-competition",
+      "name": "Investment / Quantitative Competition",
+      "family": "competition",
+      "status": "PLANNED_UNVERIFIED",
+      "evidence_level": "E0",
+      "claim_boundary": "Competition concept specified; no participant, sponsor, judging, or result claim is established here.",
+      "evidence_records": []
+    }
+  ]
+}
