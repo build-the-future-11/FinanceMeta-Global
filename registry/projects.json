@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-29",
+  "projects": [
+    {
+      "id": "fi-jepa",
+      "name": "FI-JEPA",
+      "path": "FI-JEPA/",
+      "program": "labs",
+      "status": "UNAUDITED",
+      "evidence_level": "UNKNOWN",
+      "result_status": "UNVERIFIED",
+      "claim_boundary": "Existing research directory detected. No scientific result, maturity level, external validation, or publication status is asserted until its repository artifacts are audited against OPERATING_SYSTEM_2026.md.",
+      "evidence_record": null,
+      "next_gate": "Create a project evidence record with hypothesis, baselines, data provenance, reproduction command, raw-result locations, negative findings, and release decision."
+    }
+  ]
+}
