@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "last_verified": "2026-08-29",
+  "projects": [
+    {
+      "id": "FI-JEPA",
+      "path": "FI-JEPA",
+      "domain": ["machine-learning", "finance"],
+      "maturity": "M0",
+      "evidence_level": "E0",
+      "status": "proposal_stub",
+      "verified_repository_state": {
+        "readme_present": true,
+        "license_present": true,
+        "implementation_present": false,
+        "tests_present": false,
+        "results_present": false,
+        "reproduction_command_present": false
+      },
+      "claim_boundary": "The directory currently contains a README, license, and effectively empty init.py. It is not evidence of an implemented or validated financial JEPA system.",
+      "next_gate": "Define a falsifiable research question, create executable implementation and baseline, add data provenance, tests, and a reproducible bounded experiment before promotion to M1/E1."
+    }
+  ]
+}
