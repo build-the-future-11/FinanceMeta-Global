@@ -1,0 +1,46 @@
+name: September literacy pilot protocol
+
+on:
+  pull_request:
+    paths:
+      - 'evaluation/september-2026-financial-literacy-pilot/**'
+      - 'scripts/validate_september_pilot_protocol.py'
+      - '.github/workflows/september-literacy-pilot-protocol.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'evaluation/september-2026-financial-literacy-pilot/**'
+      - 'scripts/validate_september_pilot_protocol.py'
+      - '.github/workflows/september-literacy-pilot-protocol.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Validate frozen pre-pilot protocol
+        run: python scripts/validate_september_pilot_protocol.py
+      - name: Record immutable protocol digests
+        run: |
+          sha256sum \
+            evaluation/september-2026-financial-literacy-pilot/protocol.json \
+            evaluation/september-2026-financial-literacy-pilot/INTERVENTION.md \
+            scripts/validate_september_pilot_protocol.py \
+            > september-pilot-protocol-digests.txt
+          cat september-pilot-protocol-digests.txt
+      - name: Upload protocol evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: september-literacy-pilot-protocol-${{ github.sha }}
+          path: september-pilot-protocol-digests.txt
+          if-no-files-found: error
+          retention-days: 30
