@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
-  "last_verified": "2026-08-29",
+  "last_verified": "2026-09-01",
   "projects": [
     {
       "id": "FI-JEPA",
       "path": "FI-JEPA",
       "domain": ["machine-learning", "finance"],
-      "maturity": "M0",
-      "evidence_level": "E0",
-      "status": "proposal_stub",
+      "maturity": "M1",
+      "evidence_level": "E1",
+      "status": "executable",
       "verified_repository_state": {
         "readme_present": true,
         "license_present": true,
-        "implementation_present": false,
-        "tests_present": false,
+        "implementation_present": true,
+        "tests_present": true,
         "results_present": false,
-        "reproduction_command_present": false
+        "reproduction_command_present": true
       },
-      "claim_boundary": "The directory currently contains a README, license, and effectively empty init.py. It is not evidence of an implemented or validated financial JEPA system.",
-      "next_gate": "Define a falsifiable research question, create executable implementation and baseline, add data provenance, tests, and a reproducible bounded experiment before promotion to M1/E1."
+      "claim_boundary": "Executable deterministic synthetic baseline only. This is not evidence of novelty, real-market performance, predictive alpha, profitability, external reproduction, or trading suitability.",
+      "next_gate": "Add licensed point-in-time market data with provenance and leakage controls, retain raw machine-readable outputs with seed/config/commit provenance, add stronger baselines, multiple seeds, walk-forward evaluation, ablations, and confidence intervals before any promotion beyond M1/E1."
     }
   ]
 }
