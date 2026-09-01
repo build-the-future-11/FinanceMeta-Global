@@ -24,6 +24,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -31,16 +33,17 @@ jobs:
         run: python scripts/validate_september_pilot_protocol.py
       - name: Record immutable protocol digests
         run: |
+          printf 'verified_ref=%s\n' '${{ github.event.pull_request.head.sha || github.sha }}' > september-pilot-protocol-digests.txt
           sha256sum \
             evaluation/september-2026-financial-literacy-pilot/protocol.json \
             evaluation/september-2026-financial-literacy-pilot/INTERVENTION.md \
             scripts/validate_september_pilot_protocol.py \
-            > september-pilot-protocol-digests.txt
+            >> september-pilot-protocol-digests.txt
           cat september-pilot-protocol-digests.txt
       - name: Upload protocol evidence
         uses: actions/upload-artifact@v7
         with:
-          name: september-literacy-pilot-protocol-${{ github.sha }}
+          name: september-literacy-pilot-protocol-${{ github.event.pull_request.head.sha || github.sha }}
           path: september-pilot-protocol-digests.txt
           if-no-files-found: error
           retention-days: 30
