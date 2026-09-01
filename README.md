@@ -13,6 +13,7 @@ This repository is intentionally evidence-first. It should not be read as proof 
 - `templates/program_evidence_record.md` — bounded program-cycle execution and evidence record.
 - `templates/research_project_evidence.md` — research question, baselines, provenance, result, reproducibility, review, and release record.
 - `templates/chapter_monthly_evidence.md` — chapter evidence record enforcing the trailing-45-day activity definition.
+- `templates/partner_crm_record.md` — bounded external-relationship record with pipeline states, next-action discipline, delivery evidence, and public-claim gates.
 - `QUARTERLY_OUTPUT_REPORT_TEMPLATE.md` — evidence-backed output report centered on completed work, failures, and external validation.
 - `scripts/validate_registry.py` — conservative validator for registry schema and promotion-state contradictions.
 - `LICENSE` — repository license.
@@ -37,6 +38,12 @@ python3 scripts/validate_registry.py
 ```
 
 A chapter is counted as active only when a monthly evidence record satisfies the trailing-45-day qualifying-output rule. A research project should not move beyond M0/E0 because a paper idea or README exists; implementation, reproducibility, results, and external validation are separate gates.
+
+## External relationship workflow
+
+Use `templates/partner_crm_record.md` for universities, schools, professors, financial-education organizations, sponsors, industry collaborators, and other external relationships. Every live relationship must have a named internal owner, a specific next action, and a next-action date. A relationship becomes `DELIVERED` only after the external contribution actually occurs and evidence exists; warm replies and scheduled calls remain earlier pipeline states.
+
+Keep private correspondence and unnecessary personal contact information out of the public repository. Store only the operating facts and evidence references needed to support legitimate FinanceMeta claims.
 
 ## Research release standard
 
