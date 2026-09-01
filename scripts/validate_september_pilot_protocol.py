@@ -99,7 +99,7 @@ def main() -> None:
     intervention_text = INTERVENTION.read_text().lower()
     for phrase in (
         "not financial advice",
-        "no product pitch",
+        "do not add a product pitch",
         "do not selectively reteach",
         "pseudonymous participant ids",
     ):
