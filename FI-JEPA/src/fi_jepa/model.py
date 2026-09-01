@@ -24,7 +24,7 @@ class FIJEPA:
         features: int,
         target_length: int,
         embedding_dim: int = 12,
-        learning_rate: float = 0.03,
+        learning_rate: float = 0.04,
         ema_momentum: float = 0.98,
         seed: int = 7,
     ) -> None:
