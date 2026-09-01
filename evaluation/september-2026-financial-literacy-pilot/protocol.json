@@ -1,0 +1,167 @@
+{
+  "protocol_id": "FINANCEMETA-LITERACY-SEP2026-v1",
+  "status": "FROZEN_PRE_PILOT",
+  "frozen_date": "2026-09-01",
+  "claim_boundary": {
+    "allowed_if_gate_passes": "promising preliminary evidence from a bounded non-causal pilot",
+    "forbidden": [
+      "causal effectiveness",
+      "FINRA endorsement or validation",
+      "general financial-advice efficacy",
+      "population-level learning impact"
+    ]
+  },
+  "population": {
+    "eligibility": "students in grades 9-12 attending the September 2026 FinanceMeta financial-literacy module",
+    "recruitment": "opt-in through the host school/program; no payment, grade credit, or financial incentive for participating in evaluation",
+    "minimum_age": 13,
+    "consent": "follow host-school and applicable guardian/participant consent requirements before collecting evaluation data",
+    "privacy": "use pseudonymous participant IDs only; do not collect household income, account balances, bank details, investment holdings, or other unnecessary personal financial data"
+  },
+  "intervention": {
+    "version": "FINANCEMETA-LITERACY-MODULE-SEP2026-v1",
+    "content_path": "evaluation/september-2026-financial-literacy-pilot/INTERVENTION.md",
+    "duration_minutes": 35,
+    "changes_after_first_participant": "forbidden_without_new_protocol_version"
+  },
+  "assessment": {
+    "note": "These are original concept-aligned pilot items, not canonical GFLEC item wording and not a claim of instrument equivalence.",
+    "pre_form": [
+      {
+        "id": "A1_interest",
+        "prompt": "You place 100 monetary units in an account earning 10% interest per year, with interest added annually. If you make no deposits or withdrawals, how much is in the account after two years?",
+        "choices": ["110", "120", "121", "Not enough information"],
+        "correct_index": 2
+      },
+      {
+        "id": "A2_inflation",
+        "prompt": "Your savings earn 3% in one year while prices rise 5% over the same year. Compared with today, what can the savings buy after one year?",
+        "choices": ["More", "About the same", "Less", "Cannot tell from the information given"],
+        "correct_index": 2
+      },
+      {
+        "id": "A3_diversification",
+        "prompt": "Which choice usually reduces exposure to the failure of any single company?",
+        "choices": ["Owning shares in one company", "Holding a broad diversified fund", "Keeping all money in one sector", "Borrowing to buy more of one stock"],
+        "correct_index": 1
+      },
+      {
+        "id": "A4_debt_cost",
+        "prompt": "Two loans have the same amount and term. Loan X has a lower annual percentage rate than Loan Y and no extra fees. Which loan should have the lower financing cost?",
+        "choices": ["Loan X", "Loan Y", "They must cost the same", "The rate never affects cost"],
+        "correct_index": 0
+      },
+      {
+        "id": "A5_risk_return",
+        "prompt": "Which statement best reflects the relationship between investment risk and expected return?",
+        "choices": ["Higher expected return is generally available with no added risk", "Higher expected return generally comes with accepting more uncertainty or risk", "Risk disappears if an asset did well last year", "A diversified investment can never lose value"],
+        "correct_index": 1
+      }
+    ],
+    "post_form": [
+      {
+        "id": "B1_interest",
+        "prompt": "You place 200 monetary units in an account earning 5% interest per year, with interest added annually. If you make no deposits or withdrawals, how much is in the account after two years?",
+        "choices": ["210", "220", "220.5", "Not enough information"],
+        "correct_index": 2
+      },
+      {
+        "id": "B2_inflation",
+        "prompt": "Your pay rises 2% while the prices of the things you buy rise 6%. If nothing else changes, your purchasing power has most likely done what?",
+        "choices": ["Increased", "Stayed the same", "Decreased", "Become impossible to compare"],
+        "correct_index": 2
+      },
+      {
+        "id": "B3_diversification",
+        "prompt": "Which portfolio is least dependent on the performance of one business?",
+        "choices": ["One technology stock", "Five shares of the same company", "A broad fund holding many companies and sectors", "Two companies in the same industry"],
+        "correct_index": 2
+      },
+      {
+        "id": "B4_debt_cost",
+        "prompt": "For otherwise identical loans with no extra fees, what happens to total financing cost when the interest rate is higher?",
+        "choices": ["It generally increases", "It generally decreases", "It is always unchanged", "It becomes zero"],
+        "correct_index": 0
+      },
+      {
+        "id": "B5_risk_return",
+        "prompt": "An investment advertises much higher expected returns than a government-backed savings product. Which response is most financially literate?",
+        "choices": ["Assume it is equally safe", "Expect that the higher return may involve higher risk and investigate that risk", "Borrow as much as possible to invest", "Treat the advertised return as guaranteed"],
+        "correct_index": 1
+      }
+    ],
+    "scenario_transfer": [
+      {
+        "id": "T1_budget_inflation",
+        "prompt": "A student has a fixed monthly allowance. Food and transport prices rise, but the allowance does not. Which action best preserves the budget without taking on debt?",
+        "choices": ["Ignore the change", "Recalculate spending categories and reduce lower-priority spending", "Assume inflation will automatically increase the allowance", "Use a high-interest loan for routine spending"],
+        "correct_index": 1
+      },
+      {
+        "id": "T2_diversification",
+        "prompt": "A student wants long-term market exposure but is worried that one company could fail. Which principle most directly addresses that concern?",
+        "choices": ["Diversification", "Leverage", "Market timing", "Concentration"],
+        "correct_index": 0
+      }
+    ],
+    "confidence_scale": "0-100 after each item",
+    "scoring": {
+      "knowledge_score": "1 point per correct item; 0 otherwise; report 0-5 and percentage",
+      "scenario_transfer_score": "1 point per correct transfer item; 0 otherwise; report 0-2 and percentage",
+      "confidence_calibration": "report mean confidence for correct and incorrect responses separately; do not combine into the primary outcome"
+    }
+  },
+  "analysis": {
+    "primary_metric": "paired post knowledge percentage minus paired pre knowledge percentage among participants with both forms",
+    "secondary_metrics": [
+      "paired median knowledge-point change",
+      "post scenario-transfer percentage",
+      "confidence calibration",
+      "completion rate"
+    ],
+    "subgroup_analyses": [],
+    "missing_data": {
+      "primary": "complete-pair analysis only; never impute a missing post-test as improvement",
+      "reporting": "report enrolled, pre-complete, post-complete, paired-complete, and dropout counts separately",
+      "sensitivity": "report baseline pre-score for completers versus non-completers when at least five non-completers exist"
+    },
+    "exclusions": "exclude only duplicate technical records, participants outside frozen eligibility, or records lacking consent; report counts and reasons",
+    "minimum_cohort_for_promising_label": 20
+  },
+  "decision_rule": {
+    "promising_preliminary_evidence_requires_all": [
+      "at least 20 paired completers",
+      "post-test missingness among pre-test completers is at most 25%",
+      "mean paired knowledge change is at least +10 percentage points",
+      "median paired knowledge change is at least +1 of 5 items",
+      "post scenario-transfer accuracy is at least 60%",
+      "no material integrity or consent failure is discovered"
+    ],
+    "inconclusive_if": [
+      "cohort or completion thresholds are not met",
+      "knowledge and transfer indicators materially disagree",
+      "data-quality problems prevent trustworthy scoring"
+    ],
+    "redesign_required_if": [
+      "mean paired knowledge change is negative",
+      "median paired knowledge change is zero or negative while the mean is below +10 percentage points",
+      "post scenario-transfer accuracy is below 50%",
+      "post-test missingness exceeds 40%",
+      "an integrity, consent, or privacy breach invalidates the pilot"
+    ]
+  },
+  "reporting": {
+    "required": [
+      "protocol version and source commit",
+      "intervention version",
+      "participant flow",
+      "exact measures and scoring",
+      "aggregate results",
+      "missing-data accounting",
+      "paired effect size with uncertainty when sample size permits",
+      "failure cases",
+      "changes made because of evidence"
+    ],
+    "prohibited": "Do not publish participant-level identities or raw free-text responses. Do not describe outputs such as attendance as learning outcomes."
+  }
+}
