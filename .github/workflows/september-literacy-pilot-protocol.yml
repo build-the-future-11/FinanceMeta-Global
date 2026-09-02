@@ -23,10 +23,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-python@v6
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
       - name: Validate frozen pre-pilot protocol
@@ -41,7 +42,7 @@ jobs:
             >> september-pilot-protocol-digests.txt
           cat september-pilot-protocol-digests.txt
       - name: Upload protocol evidence
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: september-literacy-pilot-protocol-${{ github.event.pull_request.head.sha || github.sha }}
           path: september-pilot-protocol-digests.txt
