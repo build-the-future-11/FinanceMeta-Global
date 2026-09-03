@@ -39,7 +39,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python --version > fi-jepa-environment.txt
+          printf 'source_commit=%s\n' '${{ github.event.pull_request.head.sha || github.sha }}' > fi-jepa-environment.txt
+          printf 'workflow_commit=%s\n' "$GITHUB_SHA" >> fi-jepa-environment.txt
+          python --version >> fi-jepa-environment.txt
           python -m pip --version >> fi-jepa-environment.txt
           python -m pip freeze --all >> fi-jepa-environment.txt
       - name: Test
@@ -48,7 +50,7 @@ jobs:
         run: python -m fi_jepa.cli --epochs 40 | tee fi-jepa-report.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: fi-jepa-synthetic-report-${{ github.sha }}
+          name: fi-jepa-synthetic-report-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             fi-jepa-report.json
             fi-jepa-environment.txt
