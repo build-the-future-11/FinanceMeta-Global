@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -32,4 +32,14 @@ jobs:
         with:
           python-version: '3.12'
       - name: Validate evidence registry
-        run: python scripts/validate_registry.py
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/validate_registry.py | tee registry-validation.txt
+      - name: Upload registry validation evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: registry-validation-${{ github.sha }}
+          path: registry-validation.txt
+          if-no-files-found: error
+          retention-days: 14
