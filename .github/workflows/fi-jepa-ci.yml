@@ -2,6 +2,7 @@ name: FI-JEPA baseline
 
 on:
   push:
+    branches: [main]
     paths:
       - 'FI-JEPA/**'
       - '.github/workflows/fi-jepa-ci.yml'
@@ -12,6 +13,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: fi-jepa-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
