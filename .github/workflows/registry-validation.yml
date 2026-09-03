@@ -27,6 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
@@ -34,12 +35,20 @@ jobs:
       - name: Validate evidence registry
         shell: bash
         run: |
-          set -o pipefail
-          python scripts/validate_registry.py | tee registry-validation.txt
+          set -euo pipefail
+          printf 'source_commit=%s\n' '${{ github.event.pull_request.head.sha || github.sha }}' > registry-validation.txt
+          printf 'workflow_commit=%s\n' "$GITHUB_SHA" >> registry-validation.txt
+          python scripts/validate_registry.py | tee -a registry-validation.txt
+      - name: Record registry digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum scripts/validate_registry.py >> registry-validation.txt
+          find registry -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum >> registry-validation.txt
       - name: Upload registry validation evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: registry-validation-${{ github.sha }}
+          name: registry-validation-${{ github.event.pull_request.head.sha || github.sha }}
           path: registry-validation.txt
           if-no-files-found: error
           retention-days: 14
