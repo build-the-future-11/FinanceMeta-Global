@@ -34,18 +34,38 @@ def load(path: Path) -> dict:
     if not path.exists():
         raise SystemExit(f"missing registry: {path.relative_to(ROOT)}")
     try:
-        return json.loads(path.read_text())
+        data = json.loads(path.read_text())
     except json.JSONDecodeError as exc:
         raise SystemExit(f"invalid JSON in {path.relative_to(ROOT)}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise SystemExit(f"registry root must be an object: {path.relative_to(ROOT)}")
+    return data
 
 
 def unique_ids(records: list[dict], label: str) -> None:
+    if any(not isinstance(record, dict) for record in records):
+        raise SystemExit(f"{label}: every record must be an object")
     ids = [r.get("id") for r in records]
     if any(not isinstance(v, str) or not v.strip() for v in ids):
         raise SystemExit(f"{label}: every record needs a non-empty string id")
-    duplicates = sorted({v for v in ids if ids.count(v) > 1})
+    seen: set[str] = set()
+    duplicates: set[str] = set()
+    for value in ids:
+        if value in seen:
+            duplicates.add(value)
+        seen.add(value)
     if duplicates:
-        raise SystemExit(f"{label}: duplicate ids: {duplicates}")
+        raise SystemExit(f"{label}: duplicate ids: {sorted(duplicates)}")
+
+
+def repository_path(path: str) -> Path:
+    candidate = (ROOT / path).resolve()
+    root = ROOT.resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError as exc:
+        raise SystemExit(f"registry path escapes repository root: {path}") from exc
+    return candidate
 
 
 def main() -> None:
@@ -99,6 +119,9 @@ def main() -> None:
         missing = sorted(required_state - set(state))
         if missing:
             errors.append(f"project {pid}: repository-state fields missing: {missing}")
+        non_boolean = sorted(field for field in required_state if field in state and not isinstance(state[field], bool))
+        if non_boolean:
+            errors.append(f"project {pid}: repository-state fields must be booleans: {non_boolean}")
         if status == "proposal_stub":
             if maturity != "M0" or evidence != "E0":
                 errors.append(f"project {pid}: proposal_stub must remain M0/E0")
@@ -113,8 +136,14 @@ def main() -> None:
         path = p.get("path")
         if not isinstance(path, str) or not path.strip():
             errors.append(f"project {pid}: missing repository path")
-        elif not (ROOT / path).exists():
-            errors.append(f"project {pid}: registered path does not exist: {path}")
+        else:
+            try:
+                resolved_path = repository_path(path)
+            except SystemExit as exc:
+                errors.append(f"project {pid}: {exc}")
+            else:
+                if not resolved_path.exists():
+                    errors.append(f"project {pid}: registered path does not exist: {path}")
 
     if errors:
         raise SystemExit("registry validation failed:\n- " + "\n- ".join(errors))
