@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 PROGRAMS = ROOT / "registry" / "programs.json"
@@ -30,12 +30,24 @@ PROJECT_STATUS = {
 }
 
 
+def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
+    result: dict[str, object] = {}
+    duplicates: set[str] = set()
+    for key, value in pairs:
+        if key in result:
+            duplicates.add(key)
+        result[key] = value
+    if duplicates:
+        raise ValueError(f"duplicate JSON object keys: {sorted(duplicates)}")
+    return result
+
+
 def load(path: Path) -> dict:
     if not path.exists():
         raise SystemExit(f"missing registry: {path.relative_to(ROOT)}")
     try:
-        data = json.loads(path.read_text())
-    except json.JSONDecodeError as exc:
+        data = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicate_keys)
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as exc:
         raise SystemExit(f"invalid JSON in {path.relative_to(ROOT)}: {exc}") from exc
     if not isinstance(data, dict):
         raise SystemExit(f"registry root must be an object: {path.relative_to(ROOT)}")
@@ -48,6 +60,9 @@ def unique_ids(records: list[dict], label: str) -> None:
     ids = [r.get("id") for r in records]
     if any(not isinstance(v, str) or not v.strip() for v in ids):
         raise SystemExit(f"{label}: every record needs a non-empty string id")
+    whitespace_ids = sorted(v for v in ids if v != v.strip())
+    if whitespace_ids:
+        raise SystemExit(f"{label}: ids must not contain leading/trailing whitespace: {whitespace_ids}")
     seen: set[str] = set()
     duplicates: set[str] = set()
     for value in ids:
@@ -59,6 +74,18 @@ def unique_ids(records: list[dict], label: str) -> None:
 
 
 def repository_path(path: str) -> Path:
+    if path != path.strip():
+        raise SystemExit(f"registry path must not contain leading/trailing whitespace: {path!r}")
+    if "\\" in path:
+        raise SystemExit(f"registry path must use POSIX separators: {path}")
+    pure_path = PurePosixPath(path)
+    if pure_path.is_absolute() or path.startswith("/"):
+        raise SystemExit(f"registry path must be repository-relative: {path}")
+    if path in {"", "."} or any(part in {"", ".", ".."} for part in pure_path.parts):
+        raise SystemExit(f"registry path must be normalized and repository-relative: {path}")
+    if str(pure_path) != path:
+        raise SystemExit(f"registry path must be normalized and repository-relative: {path}")
+
     candidate = (ROOT / path).resolve()
     root = ROOT.resolve()
     try:
