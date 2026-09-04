@@ -36,6 +36,12 @@ jobs:
         run: python -m pip install -e 'FI-JEPA[dev]'
       - name: Verify dependency consistency
         run: python -m pip check
+      - name: Compile source and tests
+        run: python -m compileall -q FI-JEPA/src FI-JEPA/tests
+      - name: Import installed package
+        run: python -c "import fi_jepa; import fi_jepa.cli"
+      - name: Verify installed CLI entry point
+        run: fi-jepa --help >/dev/null
       - name: Record exact environment
         shell: bash
         run: |
@@ -46,7 +52,7 @@ jobs:
           python -m pip --version >> fi-jepa-environment.txt
           python -m pip freeze --all >> fi-jepa-environment.txt
       - name: Test
-        run: pytest FI-JEPA/tests -q
+        run: python -m pytest FI-JEPA/tests -q
       - name: Reproduce synthetic baseline
         run: python -m fi_jepa.cli --epochs 40 | tee fi-jepa-report.json
       - name: Record evidence digests
