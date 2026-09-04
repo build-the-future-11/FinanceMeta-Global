@@ -22,6 +22,9 @@ concurrency:
   group: september-literacy-pilot-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   validate:
     runs-on: ubuntu-24.04
@@ -29,8 +32,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ env.SOURCE_SHA }}
           persist-credentials: false
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.12'
@@ -40,8 +48,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf 'verified_ref=%s\n' '${{ github.event.pull_request.head.sha || github.sha }}' > september-pilot-protocol-digests.txt
-          printf 'workflow_commit=%s\n' "$GITHUB_SHA" >> september-pilot-protocol-digests.txt
+          {
+            printf 'source_commit=%s\n' "${SOURCE_SHA}"
+            printf 'workflow_commit=%s\n' "$GITHUB_SHA"
+            printf 'workflow_ref=%s\n' "$GITHUB_REF"
+            printf 'runner_image=%s\n' "${ImageOS:-ubuntu24}"
+            printf 'python=%s\n' "$(python --version 2>&1)"
+            printf 'pip=%s\n' "$(python -m pip --version)"
+          } > september-pilot-protocol-digests.txt
           sha256sum \
             evaluation/september-2026-financial-literacy-pilot/protocol.json \
             evaluation/september-2026-financial-literacy-pilot/INTERVENTION.md \
@@ -51,7 +65,7 @@ jobs:
       - name: Upload protocol evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: september-literacy-pilot-protocol-${{ github.event.pull_request.head.sha || github.sha }}
+          name: september-literacy-pilot-protocol-${{ env.SOURCE_SHA }}
           path: september-pilot-protocol-digests.txt
           if-no-files-found: error
           retention-days: 30
