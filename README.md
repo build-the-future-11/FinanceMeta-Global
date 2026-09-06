@@ -1,5 +1,9 @@
 # FinanceMeta Global
 
+> **Repository role:** evidence/research workspace.  
+> **Canonical FinanceMeta/Finance4All member portal:** `build-the-future-11/finance4all-global-reach`  
+> Do not deploy this repository as the FinanceMeta portal or substitute it for the portal source unless a task explicitly targets this workspace.
+
 FinanceMeta Global is a public workspace for student work in finance, economics, quantitative research, markets, and financial technology.
 
 This repository is intentionally evidence-first. It should not be read as proof of membership scale, partnerships, publications, internships, competition outcomes, or active programs unless those claims are backed by linked artifacts.
