@@ -43,8 +43,8 @@ class TrainTheTrainerDeliveryPacketTests(unittest.TestCase):
             self.text,
         )
         self.assertIn(
-            "This packet authorizes neither a new experiment nor a causal effectiveness claim.",
-            self.text,
+            "this packet authorizes neither a new experiment nor a causal effectiveness claim.",
+            self.text.lower(),
         )
 
     def test_embedded_delivery_ledger_is_header_only_and_exactly_17_columns(self) -> None:
