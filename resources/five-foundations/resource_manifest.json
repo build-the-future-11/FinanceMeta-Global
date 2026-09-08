@@ -3,11 +3,20 @@
   "title": "Five Foundations: A 35-Minute Personal Finance Lesson",
   "version": "1.0",
   "created_date": "2026-09-08",
-  "status": "READY_FOR_PROVIDER_ELIGIBILITY_CONFIRMATION_NOT_SUBMITTED",
+  "status": "READY_FOR_CANONICAL_DEPLOYMENT_AND_PROVIDER_ELIGIBILITY_CONFIRMATION_NOT_SUBMITTED",
   "provider": "FinanceMeta",
   "target_audience": "US_HIGH_SCHOOL_GRADES_9_12",
   "resource_type": "LESSON_PLAN_AND_ACTIVITY",
   "language": "en",
+  "canonical_publication": {
+    "provider_url": "https://finance-meta.org",
+    "resource_url": "https://finance-meta.org/learn/five-foundations",
+    "standards_url": "https://finance-meta.org/learn/five-foundations#standards",
+    "site_repository": "build-the-future-11/finance4all-global-reach",
+    "route_source": "src/pages/learn/FiveFoundations.tsx",
+    "deployment_verified": false,
+    "operations_repository_is_public_source_of_truth": false
+  },
   "access": {
     "price_usd": 0,
     "account_required": false,
@@ -55,7 +64,7 @@
       "5_balanced_unbiased": "PASS",
       "6_audience_appropriate": "PASS",
       "7_respectful_nondiscriminatory": "PASS",
-      "8_nationwide_access": "CONDITIONAL_FINAL_URL_CHECK",
+      "8_nationwide_access": "CONDITIONAL_CANONICAL_DEPLOYMENT_AND_FINAL_URL_CHECK",
       "9_transparent_access_terms": "PASS"
     },
     "submission_completed": false,

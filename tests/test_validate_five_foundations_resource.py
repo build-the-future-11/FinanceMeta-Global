@@ -42,6 +42,26 @@ class FiveFoundationsValidatorTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             validator.validate(mutated, RESOURCE_DIR)
 
+    def test_deployment_cannot_be_preclaimed(self) -> None:
+        mutated = copy.deepcopy(self.data)
+        mutated["canonical_publication"]["deployment_verified"] = True
+        with self.assertRaises(AssertionError):
+            validator.validate(mutated, RESOURCE_DIR)
+
+    def test_canonical_resource_url_cannot_drift_to_preview(self) -> None:
+        mutated = copy.deepcopy(self.data)
+        mutated["canonical_publication"]["resource_url"] = (
+            "https://finance4all-global-reach.vercel.app/learn/five-foundations"
+        )
+        with self.assertRaises(AssertionError):
+            validator.validate(mutated, RESOURCE_DIR)
+
+    def test_operations_repo_cannot_become_public_source_of_truth(self) -> None:
+        mutated = copy.deepcopy(self.data)
+        mutated["canonical_publication"]["operations_repository_is_public_source_of_truth"] = True
+        with self.assertRaises(AssertionError):
+            validator.validate(mutated, RESOURCE_DIR)
+
     def test_financial_advice_boundary_cannot_be_weakened(self) -> None:
         mutated = copy.deepcopy(self.data)
         mutated["content_boundaries"]["financial_advice"] = True
