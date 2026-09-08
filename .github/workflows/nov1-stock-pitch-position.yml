@@ -1,0 +1,75 @@
+name: November stock pitch position
+
+on:
+  pull_request:
+    paths:
+      - 'operations/nov1-stock-pitch/**'
+      - 'scripts/validate_nov1_stock_pitch_position.py'
+      - 'tests/test_validate_nov1_stock_pitch_position.py'
+      - '.github/workflows/nov1-stock-pitch-position.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'operations/nov1-stock-pitch/**'
+      - 'scripts/validate_nov1_stock_pitch_position.py'
+      - 'tests/test_validate_nov1_stock_pitch_position.py'
+      - '.github/workflows/nov1-stock-pitch-position.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nov1-stock-pitch-position-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Validate FinanceMeta position boundaries
+        run: python scripts/validate_nov1_stock_pitch_position.py
+      - name: Run position regression tests
+        run: python -m unittest tests/test_validate_nov1_stock_pitch_position.py -v
+      - name: Record immutable position digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf 'source_commit=%s\n' "${SOURCE_SHA}"
+            printf 'workflow_commit=%s\n' "$GITHUB_SHA"
+            printf 'workflow_ref=%s\n' "$GITHUB_REF"
+            printf 'runner_image=%s\n' "${ImageOS:-ubuntu24}"
+            printf 'python=%s\n' "$(python --version 2>&1)"
+          } > nov1-stock-pitch-position-digests.txt
+          sha256sum \
+            operations/nov1-stock-pitch/FINANCEMETA_POSITION.md \
+            operations/nov1-stock-pitch/financemeta_position.json \
+            scripts/validate_nov1_stock_pitch_position.py \
+            tests/test_validate_nov1_stock_pitch_position.py \
+            >> nov1-stock-pitch-position-digests.txt
+          cat nov1-stock-pitch-position-digests.txt
+      - name: Upload position evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: nov1-stock-pitch-position-${{ env.SOURCE_SHA }}
+          path: nov1-stock-pitch-position-digests.txt
+          if-no-files-found: error
+          retention-days: 30
