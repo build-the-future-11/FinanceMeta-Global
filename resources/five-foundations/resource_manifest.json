@@ -1,0 +1,70 @@
+{
+  "resource_id": "FINANCEMETA-FIVE-FOUNDATIONS-2026-v1",
+  "title": "Five Foundations: A 35-Minute Personal Finance Lesson",
+  "version": "1.0",
+  "created_date": "2026-09-08",
+  "status": "READY_FOR_PROVIDER_ELIGIBILITY_CONFIRMATION_NOT_SUBMITTED",
+  "provider": "FinanceMeta",
+  "target_audience": "US_HIGH_SCHOOL_GRADES_9_12",
+  "resource_type": "LESSON_PLAN_AND_ACTIVITY",
+  "language": "en",
+  "access": {
+    "price_usd": 0,
+    "account_required": false,
+    "personal_financial_data_required": false,
+    "public_main_url_requires_final_logged_out_check": true
+  },
+  "content_boundaries": {
+    "financial_advice": false,
+    "individualized_recommendations": false,
+    "specific_security_recommendations": false,
+    "specific_lender_recommendations": false,
+    "specific_account_recommendations": false,
+    "paid_advertising": false,
+    "affiliate_links": false
+  },
+  "files": [
+    "README.md",
+    "TEACHER_GUIDE.md",
+    "STUDENT_HANDOUT.md",
+    "ANSWER_KEY.md",
+    "STANDARDS_ALIGNMENT.md",
+    "CLEARINGHOUSE_AUDIT.md",
+    "SUBMISSION_PACKET.md"
+  ],
+  "national_standards": [
+    "Saving 8-5",
+    "Saving 12-4",
+    "Investing 8-5",
+    "Investing 8-7",
+    "Investing 12-3",
+    "Investing 12-4",
+    "Investing 12-6",
+    "Managing Credit 8-2",
+    "Managing Credit 8-3",
+    "Managing Credit 12-1",
+    "Managing Credit 12-3"
+  ],
+  "jumpstart": {
+    "provider_eligibility": "UNRESOLVED_REQUIRES_JUMPSTART_CONFIRMATION",
+    "resource_criteria": {
+      "1_personal_finance_focus": "PASS",
+      "2_national_standards_consistency": "PASS",
+      "3_accuracy_and_currency": "PASS",
+      "4_writing_packaging_quality": "PASS_WITH_PRESENTATION_IMPROVEMENT_AVAILABLE",
+      "5_balanced_unbiased": "PASS",
+      "6_audience_appropriate": "PASS",
+      "7_respectful_nondiscriminatory": "PASS",
+      "8_nationwide_access": "CONDITIONAL_FINAL_URL_CHECK",
+      "9_transparent_access_terms": "PASS"
+    },
+    "submission_completed": false,
+    "accepted_or_listed": false,
+    "submission_receipt_preserved": false
+  },
+  "pilot_relationship": {
+    "frozen_protocol_id": "FINANCEMETA-LITERACY-SEP2026-v1",
+    "this_resource_changes_frozen_intervention": false,
+    "substitution_for_pilot_requires_new_protocol_version": true
+  }
+}
