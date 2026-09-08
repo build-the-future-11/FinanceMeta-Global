@@ -1,0 +1,81 @@
+name: Five Foundations resource
+
+on:
+  pull_request:
+    paths:
+      - 'resources/five-foundations/**'
+      - 'scripts/validate_five_foundations_resource.py'
+      - 'tests/test_validate_five_foundations_resource.py'
+      - '.github/workflows/five-foundations-resource.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'resources/five-foundations/**'
+      - 'scripts/validate_five_foundations_resource.py'
+      - 'tests/test_validate_five_foundations_resource.py'
+      - '.github/workflows/five-foundations-resource.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: five-foundations-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Validate resource release boundaries
+        run: python scripts/validate_five_foundations_resource.py
+      - name: Run resource regression tests
+        run: python -m unittest tests/test_validate_five_foundations_resource.py -v
+      - name: Record immutable resource digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf 'source_commit=%s\n' "${SOURCE_SHA}"
+            printf 'workflow_commit=%s\n' "$GITHUB_SHA"
+            printf 'workflow_ref=%s\n' "$GITHUB_REF"
+            printf 'runner_image=%s\n' "${ImageOS:-ubuntu24}"
+            printf 'python=%s\n' "$(python --version 2>&1)"
+          } > five-foundations-digests.txt
+          sha256sum \
+            resources/five-foundations/README.md \
+            resources/five-foundations/TEACHER_GUIDE.md \
+            resources/five-foundations/STUDENT_HANDOUT.md \
+            resources/five-foundations/ANSWER_KEY.md \
+            resources/five-foundations/STANDARDS_ALIGNMENT.md \
+            resources/five-foundations/CLEARINGHOUSE_AUDIT.md \
+            resources/five-foundations/SUBMISSION_PACKET.md \
+            resources/five-foundations/resource_manifest.json \
+            scripts/validate_five_foundations_resource.py \
+            tests/test_validate_five_foundations_resource.py \
+            >> five-foundations-digests.txt
+          cat five-foundations-digests.txt
+      - name: Upload resource evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: five-foundations-${{ env.SOURCE_SHA }}
+          path: five-foundations-digests.txt
+          if-no-files-found: error
+          retention-days: 30
