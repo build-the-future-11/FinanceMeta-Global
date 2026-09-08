@@ -21,6 +21,7 @@ Primary background:
 - deterministic synthetic regime-switching market panels;
 - past-only context and strictly later target windows;
 - chronological train/validation splits with no shared observations;
+- normalization statistics fitted only on pre-split training observations;
 - a NumPy context encoder, EMA target encoder, and latent predictor;
 - a frozen ridge probe and persistence baseline;
 - deterministic tests for leakage, reproducibility, optimization, and reporting;
@@ -36,7 +37,7 @@ pytest -q
 python -m fi_jepa.cli --epochs 40
 ```
 
-The CLI prints JSON containing the seed, split sizes, training loss, probe error, directional accuracy, and persistence-baseline error. These are **synthetic experiment metrics**, not investment returns.
+The CLI prints JSON containing the seed, split sizes, training-only normalization provenance, training loss, probe error, directional accuracy, and persistence-baseline error. These are **synthetic experiment metrics**, not investment returns.
 
 ## Evidence boundary
 

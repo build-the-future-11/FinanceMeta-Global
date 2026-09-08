@@ -18,6 +18,8 @@ class WindowedSplit:
     train_indices: IntArray
     validation_indices: IntArray
     split_index: int
+    normalization_mean: FloatArray
+    normalization_scale: FloatArray
 
 
 def make_synthetic_market(
@@ -43,9 +45,7 @@ def make_synthetic_market(
         noise = rng.normal(0.0, idiosyncratic_scale)
         series[t] = autoregressive + cross_section + noise
 
-    means = series.mean(axis=0, keepdims=True)
-    scales = series.std(axis=0, keepdims=True)
-    return (series - means) / np.where(scales < 1e-12, 1.0, scales)
+    return series
 
 
 def chronological_windows(
@@ -59,6 +59,8 @@ def chronological_windows(
     values = np.asarray(series, dtype=np.float64)
     if values.ndim != 2:
         raise ValueError("series must have shape [time, features]")
+    if not np.isfinite(values).all():
+        raise ValueError("series must contain only finite values")
     if context_length < 2 or target_length < 1:
         raise ValueError("invalid window lengths")
     if not 0.5 <= train_fraction < 0.9:
@@ -66,6 +68,12 @@ def chronological_windows(
 
     total = values.shape[0]
     split_index = int(total * train_fraction)
+    training_observations = values[:split_index]
+    normalization_mean = training_observations.mean(axis=0, keepdims=True)
+    raw_scale = training_observations.std(axis=0, keepdims=True)
+    normalization_scale = np.where(raw_scale < 1e-12, 1.0, raw_scale)
+    normalized_values = (values - normalization_mean) / normalization_scale
+
     starts = np.arange(0, total - context_length - target_length + 1, dtype=np.int64)
     context_end = starts + context_length
     target_end = context_end + target_length
@@ -76,9 +84,16 @@ def chronological_windows(
         raise ValueError("not enough observations for disjoint chronological windows")
 
     def build(indices: IntArray) -> tuple[FloatArray, FloatArray]:
-        contexts = np.stack([values[i : i + context_length] for i in indices])
+        contexts = np.stack(
+            [normalized_values[i : i + context_length] for i in indices]
+        )
         targets = np.stack(
-            [values[i + context_length : i + context_length + target_length] for i in indices]
+            [
+                normalized_values[
+                    i + context_length : i + context_length + target_length
+                ]
+                for i in indices
+            ]
         )
         return contexts, targets
 
@@ -95,4 +110,6 @@ def chronological_windows(
         train_indices=train_indices,
         validation_indices=validation_indices,
         split_index=split_index,
+        normalization_mean=normalization_mean.reshape(-1),
+        normalization_scale=normalization_scale.reshape(-1),
     )

@@ -26,6 +26,21 @@ def test_chronological_split_has_no_shared_observations() -> None:
     assert train_last_observation < validation_first_observation
 
 
+def test_normalization_uses_training_observations_only() -> None:
+    series = make_synthetic_market(observations=320, seed=4)
+    baseline = chronological_windows(series, context_length=20, target_length=5)
+
+    changed_future = series.copy()
+    changed_future[baseline.split_index :] += 10_000.0
+    changed = chronological_windows(changed_future, context_length=20, target_length=5)
+
+    np.testing.assert_allclose(changed.normalization_mean, baseline.normalization_mean)
+    np.testing.assert_allclose(changed.normalization_scale, baseline.normalization_scale)
+    np.testing.assert_allclose(changed.train_context, baseline.train_context)
+    np.testing.assert_allclose(changed.train_target, baseline.train_target)
+    assert not np.allclose(changed.validation_context, baseline.validation_context)
+
+
 def test_jepa_optimization_reduces_training_objective() -> None:
     series = make_synthetic_market(observations=360, seed=5)
     split = chronological_windows(series, context_length=18, target_length=4)
@@ -58,4 +73,5 @@ def test_probe_and_cli_report_finite_metrics() -> None:
     assert report["status"] == "synthetic_baseline_only"
     assert report["train_windows"] > 0
     assert report["validation_windows"] > 0
+    assert report["preprocessing"]["normalization"] == "training_observations_only"
     assert report["final_loss"] < report["initial_loss"]

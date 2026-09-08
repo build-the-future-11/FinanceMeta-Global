@@ -30,6 +30,12 @@ def run(*, seed: int, epochs: int) -> dict[str, object]:
         "epochs": epochs,
         "train_windows": int(split.train_context.shape[0]),
         "validation_windows": int(split.validation_context.shape[0]),
+        "preprocessing": {
+            "normalization": "training_observations_only",
+            "split_index": split.split_index,
+            "mean": split.normalization_mean.tolist(),
+            "scale": split.normalization_scale.tolist(),
+        },
         "initial_loss": losses[0],
         "final_loss": losses[-1],
         "probe": asdict(metrics),
