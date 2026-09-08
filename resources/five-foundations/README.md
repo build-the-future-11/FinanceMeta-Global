@@ -8,6 +8,16 @@
 **Cost:** free  
 **Account required:** no  
 
+## Publication architecture
+
+**Canonical learner-facing page:** `https://finance-meta.org/learn/five-foundations`  
+**Canonical public-site repository:** `build-the-future-11/finance4all-global-reach`  
+**Public route source:** `src/pages/learn/FiveFoundations.tsx`
+
+This directory is the operations/audit package used to preserve standards mapping, submission state, and review evidence. It is **not** the canonical public educational surface. If learner-facing copy here and the canonical site differ, the public-site implementation must be reconciled before any external submission or review.
+
+Until the canonical production URL is verified from a logged-out browser, do not substitute this GitHub directory or a Vercel preview/deployment URL as the resource link in an external listing.
+
 ## Purpose
 
 Five Foundations is a short, general financial-education lesson covering five ideas that recur across saving, borrowing, and investing decisions:
@@ -20,16 +30,15 @@ Five Foundations is a short, general financial-education lesson covering five id
 
 It is designed for one 35-minute class. The lesson uses hypothetical numbers and general concepts. It does not recommend a security, financial product, lender, broker, account, portfolio, or individualized financial action.
 
-## Use the resource
+## Audit package
 
-- `TEACHER_GUIDE.md` contains the complete run-of-show and worked examples.
-- `STUDENT_HANDOUT.md` contains the learner exercises.
-- `ANSWER_KEY.md` contains worked solutions and teaching notes.
-- `STANDARDS_ALIGNMENT.md` maps the lesson to the 2021 National Standards for Personal Financial Education.
-- `CLEARINGHOUSE_AUDIT.md` records a fail-closed audit against the Jump$tart Clearinghouse listing criteria.
-- `resource_manifest.json` records the release state and claim boundaries in machine-readable form.
-
-No registration, email address, purchase, or financial information is required to use these files.
+- `TEACHER_GUIDE.md` preserves the reviewed run-of-show and worked examples.
+- `STUDENT_HANDOUT.md` preserves the reviewed learner exercises.
+- `ANSWER_KEY.md` preserves worked solutions and teaching notes.
+- `STANDARDS_ALIGNMENT.md` records the mapping to the 2021 National Standards for Personal Financial Education.
+- `CLEARINGHOUSE_AUDIT.md` records the fail-closed audit against the Jump$tart Clearinghouse listing criteria.
+- `SUBMISSION_PACKET.md` contains prepared form fields and the canonical URL gate.
+- `resource_manifest.json` records release state, canonical-publication ownership, and claim boundaries in machine-readable form.
 
 ## Learning objectives
 
@@ -53,7 +62,9 @@ This public resource is separate from the frozen `FINANCEMETA-LITERACY-SEP2026-v
 
 ## Access and terms
 
-The resource is provided at no cost through this public repository. No account is required. Repository content is governed by the repository's MIT License unless a file states otherwise.
+The intended public resource is free at `https://finance-meta.org/learn/five-foundations`, with no account or personal financial information required. The final live access state remains a release gate until the production route is independently verified.
+
+Repository content is governed by the repository's MIT License unless a file states otherwise.
 
 ## Primary references
 
