@@ -35,16 +35,17 @@ class TrainTheTrainerDeliveryPacketTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.text = PACKET.read_text(encoding="utf-8")
+        cls.normalized_text = re.sub(r"\s+", " ", cls.text).strip().lower()
 
     def test_packet_exists_and_is_explicitly_non_authorizing(self) -> None:
         self.assertTrue(PACKET.is_file())
         self.assertIn(
-            "Status: operational template, not a launched program or a partner agreement.",
-            self.text,
+            "status: operational template, not a launched program or a partner agreement.",
+            self.normalized_text,
         )
         self.assertIn(
             "this packet authorizes neither a new experiment nor a causal effectiveness claim.",
-            self.text.lower(),
+            self.normalized_text,
         )
 
     def test_embedded_delivery_ledger_is_header_only_and_exactly_17_columns(self) -> None:
