@@ -12,6 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 RESOURCE_DIR = ROOT / "resources/five-foundations"
 DEFAULT_MANIFEST = RESOURCE_DIR / "resource_manifest.json"
 
+CANONICAL_PROVIDER_URL = "https://finance-meta.org"
+CANONICAL_RESOURCE_URL = "https://finance-meta.org/learn/five-foundations"
+CANONICAL_STANDARDS_URL = f"{CANONICAL_RESOURCE_URL}#standards"
+CANONICAL_SITE_REPOSITORY = "build-the-future-11/finance4all-global-reach"
+CANONICAL_ROUTE_SOURCE = "src/pages/learn/FiveFoundations.tsx"
+
 EXPECTED_FILES = {
     "README.md",
     "TEACHER_GUIDE.md",
@@ -50,8 +56,21 @@ def validate(data: dict[str, object], resource_dir: Path = RESOURCE_DIR) -> None
     require(data.get("version") == "1.0", "resource version drift")
     require(data.get("created_date") == "2026-09-08", "release date drift")
     require(
-        data.get("status") == "READY_FOR_PROVIDER_ELIGIBILITY_CONFIRMATION_NOT_SUBMITTED",
-        "release must remain explicitly unsubmitted until the provider gate is resolved",
+        data.get("status")
+        == "READY_FOR_CANONICAL_DEPLOYMENT_AND_PROVIDER_ELIGIBILITY_CONFIRMATION_NOT_SUBMITTED",
+        "release must remain deployment/provider gated and explicitly unsubmitted",
+    )
+
+    publication = data["canonical_publication"]
+    require(publication["provider_url"] == CANONICAL_PROVIDER_URL, "canonical provider URL drift")
+    require(publication["resource_url"] == CANONICAL_RESOURCE_URL, "canonical resource URL drift")
+    require(publication["standards_url"] == CANONICAL_STANDARDS_URL, "canonical standards URL drift")
+    require(publication["site_repository"] == CANONICAL_SITE_REPOSITORY, "canonical site repository drift")
+    require(publication["route_source"] == CANONICAL_ROUTE_SOURCE, "canonical route source drift")
+    require(publication["deployment_verified"] is False, "deployment may not be preclaimed as verified")
+    require(
+        publication["operations_repository_is_public_source_of_truth"] is False,
+        "operations repository may not become the learner-facing source of truth",
     )
 
     access = data["access"]
@@ -106,7 +125,7 @@ def validate(data: dict[str, object], resource_dir: Path = RESOURCE_DIR) -> None
     require(criteria["6_audience_appropriate"] == "PASS", "audience criterion drift")
     require(criteria["7_respectful_nondiscriminatory"] == "PASS", "respect criterion drift")
     require(
-        criteria["8_nationwide_access"] == "CONDITIONAL_FINAL_URL_CHECK",
+        criteria["8_nationwide_access"] == "CONDITIONAL_CANONICAL_DEPLOYMENT_AND_FINAL_URL_CHECK",
         "nationwide-access condition may not be silently marked complete",
     )
     require(criteria["9_transparent_access_terms"] == "PASS", "access-terms criterion drift")
@@ -126,9 +145,19 @@ def validate(data: dict[str, object], resource_dir: Path = RESOURCE_DIR) -> None
     audit = (resource_dir / "CLEARINGHOUSE_AUDIT.md").read_text()
     packet = (resource_dir / "SUBMISSION_PACKET.md").read_text()
     require("not financial advice" in readme.lower(), "README advice boundary missing")
+    require(CANONICAL_RESOURCE_URL in readme, "README canonical resource URL missing")
     require("NOT SUBMITTED" in audit, "audit must state that the resource is not submitted")
     require("provider eligibility" in audit.lower(), "provider eligibility gate missing from audit")
+    require(CANONICAL_RESOURCE_URL in audit, "audit canonical resource URL missing")
     require("Preparing this packet is not a submission" in packet, "submission evidence boundary missing")
+    require(f"| Provider Website | {CANONICAL_PROVIDER_URL} |" in packet, "submission packet provider URL drift")
+    require(f"| Link To Resource | {CANONICAL_RESOURCE_URL} |" in packet, "submission packet resource URL drift")
+    require(
+        f"| Standards correlation link | {CANONICAL_STANDARDS_URL} |" in packet,
+        "submission packet standards URL drift",
+    )
+    require("finance4all-global-reach.vercel.app" not in packet, "preview/deployment URL leaked into submission packet")
+    require("github.com/" not in packet, "GitHub URL leaked into submission packet")
 
 
 def main() -> None:
@@ -138,8 +167,8 @@ def main() -> None:
     data = json.loads(args.manifest.read_text())
     validate(data, args.manifest.parent)
     print(
-        "PASS: Five Foundations is complete, standards-mapped, advice-bounded, "
-        "and still fail-closed on provider eligibility/submission claims"
+        "PASS: Five Foundations is standards-mapped, advice-bounded, canonically addressed, "
+        "and fail-closed on deployment/provider/submission claims"
     )
 
 
