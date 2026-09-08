@@ -4,11 +4,20 @@
 **Resource:** Five Foundations v1.0  
 **Resource type:** Lessons / Lesson Plans and Activities  
 **Submission status:** **NOT SUBMITTED**  
-**Overall state:** **RESOURCE QUALITATIVE CRITERIA SUBSTANTIALLY SATISFIED; PROVIDER ELIGIBILITY REQUIRES JUMP$TART CONFIRMATION**
+**Overall state:** **RESOURCE QUALITATIVE CRITERIA SUBSTANTIALLY SATISFIED; CANONICAL DEPLOYMENT AND PROVIDER ELIGIBILITY REMAIN OPEN**
 
 Criteria source: https://jumpstartclearinghouse.org/static/src/assets/criteria.pdf
 
-This file is intentionally fail-closed. It distinguishes the quality of the resource from FinanceMeta's eligibility to submit it.
+This file is intentionally fail-closed. It distinguishes the quality of the resource from FinanceMeta's eligibility to submit it and from the production availability of the canonical resource URL.
+
+## Canonical publication boundary
+
+- Provider website: `https://finance-meta.org`
+- Resource URL: `https://finance-meta.org/learn/five-foundations`
+- Standards section: `https://finance-meta.org/learn/five-foundations#standards`
+- Canonical public-site repository: `build-the-future-11/finance4all-global-reach`
+
+This `FinanceMeta-Global` directory is an operations/audit package, not the learner-facing source of truth. A GitHub tree/blob URL, Vercel preview/deployment URL, or other microsite must not be substituted into the external listing if the canonical production route is unavailable.
 
 ## Provider criteria
 
@@ -16,9 +25,9 @@ Jump$tart states that a provider must own or control the resource and must be a 
 
 | Provider criterion | State | Evidence / action |
 | --- | --- | --- |
-| FinanceMeta owns or controls the submitted resource | PASS | Resource is authored and versioned in the FinanceMeta repository. |
+| FinanceMeta owns or controls the submitted resource | PASS | The public lesson is implemented in FinanceMeta's canonical site repository and the audit package is versioned here. |
 | Eligible-provider category | **UNRESOLVED** | Current evidence does not establish that FinanceMeta is a National Partner, previous provider, or an entity already considered well-known by Jump$tart. Jump$tart must confirm whether a reference letter is required. |
-| Established Internet presence and resource access path | CONDITIONAL | The public GitHub repository provides an access path. Before submission, verify that the final permanent URL resolves without login and presents complete resource information clearly. |
+| Established Internet presence and resource access path | **CONDITIONAL** | Canonical paths are defined, but the production domain/resource/standards URLs must be tested logged out after deployment before submission. |
 
 **Provider gate:** Do not submit or describe the resource as Clearinghouse-eligible until Jump$tart confirms provider eligibility or supplies the required reference-letter instructions.
 
@@ -51,9 +60,9 @@ Source review should be repeated before any future version is submitted if the r
 
 ### 4. Well written, professionally packaged, good quality
 
-**State: PASS FOR CONTENT; PRESENTATION CAN STILL BE IMPROVED**
+**State: PASS FOR CONTENT; CANONICAL WEB RELEASE IN PROGRESS**
 
-The package contains a landing page, teacher guide, student handout, answer key, standards alignment, and audit. A polished hosted HTML/PDF version would make classroom use and Clearinghouse review easier, but the instructional package is complete and internally coherent.
+The reviewed package contains a teacher guide, student handout, answer key, standards alignment, and audit. The canonical site implementation combines the instructional pieces into a printable public lesson. Production availability must still be verified after deployment.
 
 ### 5. Balanced and unbiased
 
@@ -75,15 +84,15 @@ The package contains no demographic assumptions, stereotypes, discriminatory lan
 
 ### 8. Broadly available and easily accessible nationwide
 
-**State: CONDITIONAL UNTIL FINAL URL TEST**
+**State: CONDITIONAL ON CANONICAL DEPLOYMENT + FINAL URL TEST**
 
-The intended access path is a public, no-login repository URL. Before submission, verify from a logged-out browser that the final main-branch URL works and that no regional, school, account, or payment restriction blocks access.
+The intended access path is `https://finance-meta.org/learn/five-foundations`, with no account or payment required. Before submission, verify from a logged-out browser that the provider domain, resource route, and standards anchor resolve and that no regional, school, account, or payment restriction blocks access.
 
 ### 9. Transparent pricing/access conditions/terms
 
 **State: PASS**
 
-The resource states that it is free, requires no account, requests no personal financial information, and uses the repository's MIT License unless a file states otherwise.
+The resource is specified as free, requires no account, and requests no personal financial information. Final live behavior must match those terms before submission.
 
 ## Specifically ineligible categories
 
@@ -115,11 +124,14 @@ Do not submit until all are complete:
 - [x] Advice/product-promotion audit passes.
 - [x] Accuracy audit uses current primary/regulator sources.
 - [x] Pricing/access terms are explicit.
+- [ ] Canonical site change is merged and deployed.
+- [ ] `https://finance-meta.org` is verified logged out.
+- [ ] `https://finance-meta.org/learn/five-foundations` is verified logged out and contains the complete lesson.
+- [ ] `https://finance-meta.org/learn/five-foundations#standards` resolves to the standards section.
 - [ ] Jump$tart confirms FinanceMeta's provider-eligibility route, including whether a reference letter is required.
-- [ ] Permanent public main-branch resource URL is tested from a logged-out browser.
-- [ ] Submission form fields are populated from `SUBMISSION_PACKET.md` and rechecked against the final URL.
+- [ ] Submission form fields are rechecked against the live canonical resource.
 - [ ] Submission receipt is preserved after actual submission.
 
 ## Strongest defensible claim today
 
-FinanceMeta has a complete, audited 35-minute personal-finance lesson package whose content is mapped to the 2021 National Standards and substantially satisfies the Jump$tart resource-quality criteria. It has **not** been submitted or accepted, and FinanceMeta's provider eligibility remains subject to Jump$tart confirmation.
+FinanceMeta has a complete, audited 35-minute personal-finance lesson whose content is mapped to the 2021 National Standards, and a canonical web implementation is being release-gated on `finance-meta.org`. The resource has **not** been submitted or accepted by Jump$tart; production access and provider eligibility remain unresolved gates.
