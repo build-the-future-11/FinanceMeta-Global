@@ -1,0 +1,82 @@
+{
+  "position_id": "FINANCEMETA-NOV1-STOCK-PITCH-2026-v1",
+  "status": "FINANCEMETA_INTERNAL_POSITION_NOT_PARTNER_APPROVED",
+  "source_brief": {
+    "version": "v1.0",
+    "date": "2026-08-17",
+    "open_date": "2026-11-01",
+    "submission_window": "one_month",
+    "promotion_not_before": "2026-10-16"
+  },
+  "ownership_boundaries": {
+    "platform_and_registration": "Empiric",
+    "judging_infrastructure": "Empiric",
+    "all_partner_signoff_required_before_promotion": true
+  },
+  "recommendations": {
+    "entry_fee": {
+      "position": "FREE_FIRST_YEAR",
+      "requires_partner_signoff": true
+    },
+    "entry_format": "INDIVIDUAL",
+    "eligibility": {
+      "education_levels": [
+        "high_school",
+        "undergraduate"
+      ],
+      "geography": "worldwide_only_where_operationally_supported"
+    },
+    "memo_word_cap": 2000,
+    "required_sections": [
+      "thesis",
+      "business_overview_and_key_drivers",
+      "financial_analysis",
+      "valuation",
+      "catalysts",
+      "risks_and_disconfirming_evidence",
+      "sources"
+    ],
+    "scoring": {
+      "thesis_and_reasoning": 30,
+      "financial_analysis_and_valuation": 25,
+      "evidence_and_citations": 20,
+      "risk_assessment": 15,
+      "structure_and_writing": 10
+    }
+  },
+  "integrity": {
+    "in_platform_authoring_required": true,
+    "paste_events_and_history_auditable": true,
+    "ai_editing_or_proofreading_allowed_only_if_disclosed": true,
+    "substantially_ai_generated_not_normally_eligible": true,
+    "standalone_ai_detector_not_sufficient_for_disqualification": true,
+    "post_deadline_edits_allowed": false,
+    "future_market_performance_is_scoring_component": false
+  },
+  "judging": {
+    "blind_scoring": true,
+    "conflict_disclosure_and_recusal": true,
+    "finance_meta_commitment_rule": "only_named_confirmed_judges_count_as_committed",
+    "two_independent_scores_preferred_when_capacity_permits": true,
+    "third_review_for_finalists_or_material_disagreement_preferred_when_capacity_permits": true
+  },
+  "promotion": {
+    "not_before": "2026-10-16",
+    "open_date": "2026-11-01",
+    "no_unapproved_prize_claims": true,
+    "final_partner_brief_required": true
+  },
+  "open_partner_decisions": [
+    "entry_fee_or_free_entry",
+    "cash_prize_amount_and_funding_source",
+    "complete_prize_table",
+    "individual_or_team_entry",
+    "memo_word_cap",
+    "eligibility_scope",
+    "judge_count_per_partner",
+    "scoring_window_and_results_date",
+    "promotion_launch_and_reminder_schedule",
+    "escalation_contact_per_partner",
+    "final_name_and_cobranding"
+  ]
+}
