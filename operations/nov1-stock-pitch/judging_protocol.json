@@ -1,0 +1,117 @@
+{
+  "protocol_id": "FINANCEMETA-NOV1-JUDGING-RECORDS-2026-v1",
+  "status": "FINANCEMETA_INTERNAL_DRAFT_NOT_PARTNER_APPROVED",
+  "activation": {
+    "partner_approved": false,
+    "active_competition_rule": false,
+    "final_partner_brief_required": true
+  },
+  "anti_lookahead": {
+    "judge_as_of_submission_lock": true,
+    "future_market_performance_scoring_component": false,
+    "post_lock_price_moves_allowed_in_scoring": false,
+    "post_lock_news_or_filings_allowed_in_scoring": false,
+    "post_lock_earnings_or_guidance_allowed_in_scoring": false,
+    "later_consensus_or_analyst_commentary_allowed_in_scoring": false,
+    "unreconstructable_source_action": "RECORD_LIMITATION_DO_NOT_SUBSTITUTE_LATER_INFORMATION"
+  },
+  "submission_evidence": {
+    "required_fields": [
+      "submission_id",
+      "submission_locked_at_utc",
+      "final_artifact_or_platform_snapshot_id",
+      "artifact_digest_when_available",
+      "cited_source_urls_as_captured_at_submission",
+      "ai_assistance_disclosure",
+      "integrity_record_id",
+      "entry_type_from_final_rulebook",
+      "rubric_version"
+    ],
+    "silent_post_deadline_replacement_allowed": false
+  },
+  "blindness_and_conflicts": {
+    "hide_author_identity_from_scorer": true,
+    "hide_school_from_scorer": true,
+    "hide_country_from_scorer": true,
+    "conflict_screen_before_blind_assignment": true,
+    "judge_must_stop_if_identity_recognized": true,
+    "recusal_categories": [
+      "family_or_household",
+      "direct_mentorship_supervision_or_employment",
+      "current_close_collaboration",
+      "direct_submission_preparation",
+      "material_professional_or_financial_conflict"
+    ],
+    "private_conflict_details_required_in_public_results": false,
+    "conflict_check_and_recusal_state_must_be_preserved": true
+  },
+  "candidate_rubric": {
+    "partner_approved": false,
+    "weights": {
+      "thesis_and_reasoning": 30,
+      "financial_analysis_and_valuation": 25,
+      "evidence_and_citations": 20,
+      "risk_assessment": 15,
+      "structure_and_writing": 10
+    }
+  },
+  "integrity_gate": {
+    "separate_from_merit_score": true,
+    "standalone_ai_detector_sufficient_for_auto_disqualification": false,
+    "integrity_hold_may_be_replaced_by_score_penalty": false,
+    "reason_code_required": true,
+    "reviewer_and_timestamp_required": true
+  },
+  "scoring_model": {
+    "preferred_independent_scores_when_capacity_permits": 2,
+    "required_independent_scores": null,
+    "third_review_for_finalists_or_material_disagreement_preferred": true,
+    "aggregation_rule": "UNRESOLVED_PARTNER_DECISION",
+    "finalist_rescore_rule": "UNRESOLVED_PARTNER_DECISION",
+    "overwrite_individual_scores_with_consensus_allowed": false
+  },
+  "calibration": {
+    "active_rubric_version_required": true,
+    "calibration_version_required": true,
+    "anti_lookahead_instruction_required": true,
+    "conflict_instruction_required": true,
+    "integrity_escalation_instruction_required": true
+  },
+  "per_score_record": {
+    "required_fields": [
+      "submission_id",
+      "blinded_judge_id",
+      "assignment_or_scoring_round_id",
+      "rubric_version",
+      "calibration_version",
+      "conflict_check_status",
+      "component_scores",
+      "computed_total_score",
+      "rationale",
+      "integrity_gate_status_at_scoring",
+      "scored_at_utc",
+      "recusal_or_escalation_state",
+      "record_version_or_supersession_state"
+    ],
+    "silent_deletion_or_overwrite_allowed": false
+  },
+  "results_packet": {
+    "required_records": [
+      "final_partner_approved_brief_and_rubric",
+      "submission_ids_and_immutable_artifact_references",
+      "all_judge_score_records",
+      "conflict_recusal_and_reassignment_records",
+      "calibration_version",
+      "integrity_decisions_and_reason_codes",
+      "aggregation_and_finalist_selection_rule_version",
+      "computation_output_used_for_finalist_and_winner_slate",
+      "manual_overrides_with_approver_and_reason",
+      "final_announced_result_set"
+    ],
+    "authorized_reconstruction_must_be_possible": true
+  },
+  "post_event_outcomes": {
+    "subsequent_returns_may_be_backfilled_into_judging": false,
+    "later_market_performance_analysis_requires_separate_frozen_protocol": true
+  }
+}
