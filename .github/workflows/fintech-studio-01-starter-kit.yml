@@ -1,0 +1,43 @@
+name: FinTech Studio 01 starter kit
+
+on:
+  push:
+    paths:
+      - "operations/fintech-studio-01/**"
+      - ".github/workflows/fintech-studio-01-starter-kit.yml"
+  pull_request:
+    paths:
+      - "operations/fintech-studio-01/**"
+      - ".github/workflows/fintech-studio-01-starter-kit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - name: Validate starter-kit boundaries
+        run: python operations/fintech-studio-01/validate_starter_kit.py
+      - name: Compile validator
+        run: python -m py_compile operations/fintech-studio-01/validate_starter_kit.py
+      - name: Record source-bound template identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum \
+            operations/fintech-studio-01/README.md \
+            operations/fintech-studio-01/BRIEF_TEMPLATE.md \
+            operations/fintech-studio-01/EVIDENCE_TEMPLATE.json \
+            operations/fintech-studio-01/FINDINGS_TEMPLATE.md \
+            operations/fintech-studio-01/validate_starter_kit.py
