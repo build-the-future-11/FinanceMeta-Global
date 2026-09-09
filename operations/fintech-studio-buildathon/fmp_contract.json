@@ -1,0 +1,85 @@
+{
+  "contract_id": "FINANCEMETA-FINTECH-BUILDATHON-FMP-SEP2026-v1",
+  "status": "PRELAUNCH_MANAGEMENT_APPROVAL_PENDING",
+  "event": {
+    "name": "FinanceMeta FinTech Studio Buildathon",
+    "window": "2026-11",
+    "exact_start_date": null,
+    "exact_end_date": null,
+    "duration_days_min": 7,
+    "duration_days_max": 10,
+    "format": "ONLINE",
+    "planning_team_estimate_min": 15,
+    "planning_team_estimate_max": 25,
+    "registered_team_count": null
+  },
+  "fmp": {
+    "public_partner_claim_allowed": false,
+    "management_approval_preserved": false,
+    "logo_use_allowed": false,
+    "keys_guaranteed_to_participants": false,
+    "technical_terms_confirmed": true,
+    "datasets": "ALL_FMP_DATASETS_EXCLUDING_REAL_TIME_QUOTES",
+    "real_time_quotes_allowed": false,
+    "rate_limit_calls_per_minute": 300,
+    "bandwidth_cap_gb": 20,
+    "key_model": "ONE_EVENT_ONLY_API_KEY_PER_TEAM",
+    "access_duration": "EVENT_ONLY",
+    "required_attribution": "Financial Data Powered by FMP",
+    "endpoint_tier_finalized": false,
+    "provisioning_process_finalized": false,
+    "expiry_process_finalized": false
+  },
+  "participant_rules": {
+    "cross_team_key_sharing_allowed": false,
+    "public_key_exposure_allowed": false,
+    "unrelated_personal_or_commercial_use_allowed": false,
+    "secret_storage_expected": "ENVIRONMENT_VARIABLE_OR_SERVER_SIDE_SECRET",
+    "post_event_secret_removal_required": true,
+    "attribution_required_on_public_fmp_data_outputs": true
+  },
+  "submission_requirements": [
+    "user_or_problem",
+    "input_data",
+    "system_or_output",
+    "validation_plan",
+    "runnable_or_reviewable_demo_or_artifact"
+  ],
+  "judging": {
+    "dimensions": [
+      "usefulness",
+      "correctness",
+      "finance_economics_depth",
+      "technical_execution",
+      "validation",
+      "communication",
+      "continuation_potential"
+    ],
+    "weights_frozen": false,
+    "conflict_policy_frozen": false,
+    "tie_policy_frozen": false,
+    "final_rulebook_frozen": false
+  },
+  "launch_gates": {
+    "exact_dates_frozen": false,
+    "public_event_page_frozen": false,
+    "eligibility_and_team_rules_frozen": false,
+    "registered_team_count_frozen": false,
+    "participant_technical_brief_contains_attribution": true,
+    "fmp_management_approval_required": true,
+    "fmp_brand_asset_permission_required": true,
+    "judging_rulebook_required_before_submissions": true
+  },
+  "outcome_accounting": {
+    "planning_estimate_is_registration": false,
+    "provisioned_key_is_usage": false,
+    "warm_reply_is_delivered_outcome": false,
+    "track_registered_teams": true,
+    "track_keys_issued": true,
+    "track_teams_using_fmp": true,
+    "track_active_teams": true,
+    "track_completed_prototypes": true,
+    "track_submitted_artifacts": true,
+    "track_failures_and_incidents": true
+  }
+}
