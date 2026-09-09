@@ -189,7 +189,7 @@ def validate(data: dict[str, object], spec_path: Path = SPEC) -> None:
         "conflict screening should happen before blind assignment",
         "integrity gate is separate from merit score",
         "do not overwrite one judge's record with a consensus number",
-        "requires a separate post-outcome protocol",
+        "freeze a separate post-outcome protocol",
     ):
         require(phrase in text, f"judging specification safeguard missing: {phrase}")
 
