@@ -6,6 +6,8 @@ on:
       - 'operations/nov1-stock-pitch/**'
       - 'scripts/validate_nov1_stock_pitch_position.py'
       - 'tests/test_validate_nov1_stock_pitch_position.py'
+      - 'scripts/validate_nov1_judging_protocol.py'
+      - 'tests/test_validate_nov1_judging_protocol.py'
       - '.github/workflows/nov1-stock-pitch-position.yml'
   push:
     branches:
@@ -14,6 +16,8 @@ on:
       - 'operations/nov1-stock-pitch/**'
       - 'scripts/validate_nov1_stock_pitch_position.py'
       - 'tests/test_validate_nov1_stock_pitch_position.py'
+      - 'scripts/validate_nov1_judging_protocol.py'
+      - 'tests/test_validate_nov1_judging_protocol.py'
       - '.github/workflows/nov1-stock-pitch-position.yml'
   workflow_dispatch:
 
@@ -48,7 +52,11 @@ jobs:
         run: python scripts/validate_nov1_stock_pitch_position.py
       - name: Run position regression tests
         run: python -m unittest tests/test_validate_nov1_stock_pitch_position.py -v
-      - name: Record immutable position digests
+      - name: Validate judging reproducibility boundaries
+        run: python scripts/validate_nov1_judging_protocol.py
+      - name: Run judging regression tests
+        run: python -m unittest tests/test_validate_nov1_judging_protocol.py -v
+      - name: Record immutable position and judging digests
         shell: bash
         run: |
           set -euo pipefail
@@ -62,8 +70,12 @@ jobs:
           sha256sum \
             operations/nov1-stock-pitch/FINANCEMETA_POSITION.md \
             operations/nov1-stock-pitch/financemeta_position.json \
+            operations/nov1-stock-pitch/JUDGING_RECORD_SPEC.md \
+            operations/nov1-stock-pitch/judging_protocol.json \
             scripts/validate_nov1_stock_pitch_position.py \
             tests/test_validate_nov1_stock_pitch_position.py \
+            scripts/validate_nov1_judging_protocol.py \
+            tests/test_validate_nov1_judging_protocol.py \
             >> nov1-stock-pitch-position-digests.txt
           cat nov1-stock-pitch-position-digests.txt
       - name: Upload position evidence

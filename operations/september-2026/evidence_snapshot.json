@@ -1,0 +1,115 @@
+{
+  "snapshot_id": "FINANCEMETA-SEPTEMBER-2026-EVIDENCE-20260909-v1",
+  "status": "IN_PROGRESS_FAIL_CLOSED",
+  "reporting_window": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+  },
+  "snapshot_as_of": "2026-09-09",
+  "metric_policy": {
+    "unknown_is_zero": false,
+    "planning_target_is_registration": false,
+    "registration_is_active_participant": false,
+    "active_is_completion": false,
+    "provisioned_key_is_usage": false,
+    "sponsor_offer_is_used_contribution": false,
+    "scheduled_reviewer_is_participated_reviewer": false,
+    "prepared_submission_is_external_submission": false,
+    "external_submission_is_acceptance": false,
+    "scheduled_call_is_delivered_collaboration": false,
+    "internal_artifact_is_external_outcome": false
+  },
+  "metrics": {
+    "registrations": {
+      "value": null,
+      "evidence_refs": [],
+      "counting_rule": "UNRESOLVED_SOURCE_REQUIRED"
+    },
+    "active_builders_or_teams": {
+      "value": null,
+      "evidence_refs": [],
+      "counting_rule": "UNRESOLVED_ACTIVITY_DEFINITION_AND_SOURCE_REQUIRED"
+    },
+    "completions": {
+      "value": null,
+      "evidence_refs": [],
+      "counting_rule": "UNRESOLVED_COMPLETION_DEFINITION_AND_SOURCE_REQUIRED"
+    },
+    "submitted_artifacts": {
+      "value": null,
+      "evidence_refs": [],
+      "counting_rule": "UNRESOLVED_SUBMISSION_SOURCE_REQUIRED"
+    },
+    "external_reviewers_actually_participated": {
+      "value": null,
+      "evidence_refs": [],
+      "counting_rule": "REVIEWER_COUNTS_ONLY_WITH_PRESERVED_EVALUATION_OR_ACTION"
+    },
+    "sponsor_contributions_actually_used": {
+      "value": null,
+      "evidence_refs": [],
+      "counting_rule": "COUNT_ONLY_DEMONSTRABLY_USED_SPONSOR_RESOURCE"
+    },
+    "failures_data_issues_or_complaints": {
+      "value": null,
+      "evidence_refs": [],
+      "counting_rule": "INCIDENT_SOURCE_REQUIRED"
+    }
+  },
+  "workstreams": {
+    "fmp_buildathon": {
+      "state": "TECHNICAL_TERMS_CONFIRMED_MANAGEMENT_APPROVAL_PENDING",
+      "planning_team_estimate": {
+        "min": 15,
+        "max": 25,
+        "counted_as_registration": false
+      },
+      "external_outcome_counted": false,
+      "evidence_refs": [
+        "FinanceMeta-Global@f12cc9d101e117d4196a4ff3e76839a5f3d85ea9",
+        "operations/fintech-studio-buildathon/FMP_TECHNICAL_BRIEF.md",
+        "operations/fintech-studio-buildathon/fmp_contract.json"
+      ]
+    },
+    "haven": {
+      "state": "PRECALL_PACKET_PREPARED_CALL_NOT_YET_DELIVERED",
+      "external_outcome_counted": false,
+      "evidence_refs": [
+        "operations/haven-2026-09-15/PLANNING_PACKET.md"
+      ]
+    },
+    "five_foundations": {
+      "state": "RESOURCE_AUDITED_SITE_CODE_MERGED_PRODUCTION_AND_JUMPSTART_GATES_OPEN",
+      "external_submission_completed": false,
+      "accepted_or_listed": false,
+      "canonical_production_verified": false,
+      "external_outcome_counted": false,
+      "evidence_refs": [
+        "finance4all-global-reach@9398aa74f65c9adc0bd6124735cfb27abc07fb69",
+        "FinanceMeta-Global@a4162ac90b56aff8c9f4a785ecca6b8b2ad4404e",
+        "resources/five-foundations/CLEARINGHOUSE_AUDIT.md"
+      ]
+    },
+    "nov1_stock_pitch": {
+      "state": "FINANCEMETA_INTERNAL_POSITION_AND_JUDGING_PROTOCOL_NOT_PARTNER_APPROVED",
+      "final_partner_rulebook": false,
+      "registrations_or_submissions_counted": false,
+      "judging_activity_counted": false,
+      "external_outcome_counted": false,
+      "evidence_refs": [
+        "FinanceMeta-Global@8c139d45449b6dc1e3fcab8b61b6a67b963e67bf",
+        "operations/nov1-stock-pitch/financemeta_position.json",
+        "operations/nov1-stock-pitch/judging_protocol.json"
+      ]
+    }
+  },
+  "reporting_requirements": {
+    "source_window_required": true,
+    "source_timestamp_required": true,
+    "counting_rule_version_required": true,
+    "dedupe_and_exclusions_required": true,
+    "limitations_required": true,
+    "failures_and_complaints_required": true,
+    "authorized_reconstruction_required": true
+  }
+}
