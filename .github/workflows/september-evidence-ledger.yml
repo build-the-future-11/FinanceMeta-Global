@@ -1,0 +1,75 @@
+name: September evidence ledger
+
+on:
+  pull_request:
+    paths:
+      - 'operations/september-2026/**'
+      - 'scripts/validate_september_evidence_snapshot.py'
+      - 'tests/test_validate_september_evidence_snapshot.py'
+      - '.github/workflows/september-evidence-ledger.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'operations/september-2026/**'
+      - 'scripts/validate_september_evidence_snapshot.py'
+      - 'tests/test_validate_september_evidence_snapshot.py'
+      - '.github/workflows/september-evidence-ledger.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: september-evidence-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Validate evidence snapshot
+        run: python scripts/validate_september_evidence_snapshot.py
+      - name: Run evidence regression tests
+        run: python -m unittest tests/test_validate_september_evidence_snapshot.py -v
+      - name: Record immutable evidence ledger digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf 'source_commit=%s\n' "${SOURCE_SHA}"
+            printf 'workflow_commit=%s\n' "$GITHUB_SHA"
+            printf 'python=%s\n' "$(python --version 2>&1)"
+          } > september-evidence-ledger-digests.txt
+          sha256sum \
+            operations/september-2026/EVIDENCE_LEDGER.md \
+            operations/september-2026/evidence_snapshot.json \
+            scripts/validate_september_evidence_snapshot.py \
+            tests/test_validate_september_evidence_snapshot.py \
+            >> september-evidence-ledger-digests.txt
+          cat september-evidence-ledger-digests.txt
+      - name: Upload evidence ledger proof
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: september-evidence-ledger-${{ env.SOURCE_SHA }}
+          path: september-evidence-ledger-digests.txt
+          if-no-files-found: error
+          retention-days: 30
