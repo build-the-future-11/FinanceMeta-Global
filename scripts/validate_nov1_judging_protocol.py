@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 
@@ -73,6 +74,14 @@ REQUIRED_RECUSAL_CATEGORIES = {
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise AssertionError(message)
+
+
+def normalized_markdown_text(path: Path) -> str:
+    """Normalize formatting syntax without weakening the semantic safeguard checks."""
+    text = path.read_text().lower()
+    text = re.sub(r"[*_`]+", "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
 def validate(data: dict[str, object], spec_path: Path = SPEC) -> None:
@@ -172,7 +181,7 @@ def validate(data: dict[str, object], spec_path: Path = SPEC) -> None:
     require(post["later_market_performance_analysis_requires_separate_frozen_protocol"] is True, "separate post-outcome protocol gate removed")
 
     require(spec_path.is_file(), "judging record specification missing")
-    text = spec_path.read_text().lower()
+    text = normalized_markdown_text(spec_path)
     for phrase in (
         "not partner approved",
         "future market performance is never a scoring component",
