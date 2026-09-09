@@ -31,8 +31,10 @@ def main() -> None:
     _require("Do **not** call Studio 01 launched" in readme, "README must remain fail-closed on launch status")
     _require("before implementation or primary-outcome inspection" in brief, "brief freeze boundary missing")
     _require("Failure condition" in brief, "brief must retain a stop/falsification condition")
+    _require("financial-advice boundary" in brief, "brief must retain the financial-advice guardrail")
     _require("What failed" in findings, "findings must retain failures")
     _require("STOP_INVALID_EVALUATION" in findings, "findings must permit invalid-evaluation stop")
+    _require("does **not** establish" in findings, "findings must require an explicit negative claim boundary")
 
     _require(evidence.get("schema_version") == "1.0.0", "unexpected evidence schema version")
     _require(evidence.get("status") == "template_not_executed", "starter evidence must remain unexecuted")
@@ -45,15 +47,19 @@ def main() -> None:
         value = evidence["project"][field]
         _require(value is None or SHA40.fullmatch(value) is not None, f"invalid {field}")
 
-    prohibited = (
+    # Reject affirmative promotional claims while allowing the templates to name
+    # those same risks inside explicit guardrails/disclaimers.
+    combined = "\n".join((readme, brief, findings)).lower()
+    affirmative_claims = (
+        "status: launched",
+        "studio 01 is launched",
         "guaranteed profit",
         "proven trading strategy",
-        "personalized investment advice",
-        "studio 01 launched",
+        "provides personalized investment advice",
+        "offers personalized investment advice",
     )
-    combined = "\n".join((readme, brief, findings)).lower()
-    for phrase in prohibited:
-        _require(phrase not in combined, f"prohibited claim phrase present: {phrase}")
+    for phrase in affirmative_claims:
+        _require(phrase not in combined, f"prohibited affirmative claim present: {phrase}")
 
     print("PASS_FINTECH_STUDIO_01_STARTER_KIT")
 
