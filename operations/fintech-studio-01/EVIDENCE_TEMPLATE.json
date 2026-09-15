@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "studio_cycle": "fintech-studio-01",
+  "status": "template_not_executed",
+  "project": {
+    "title": null,
+    "lane": null,
+    "repository_url": null,
+    "source_commit_sha": null,
+    "brief_freeze_commit_sha": null
+  },
+  "reproduction": {
+    "command": null,
+    "environment_lock": null
+  },
+  "data": {
+    "sources": [],
+    "source_revisions": [],
+    "input_sha256": [],
+    "privacy_or_license_notes": []
+  },
+  "evaluation": {
+    "primary_metric": null,
+    "direction": null,
+    "frozen_decision_rule": null,
+    "result": null,
+    "passed_frozen_rule": null,
+    "secondary_checks": []
+  },
+  "testing": {
+    "automated_test_count": null,
+    "tests_passed": null,
+    "failure_cases_retained": []
+  },
+  "conclusion": {
+    "recommendation": null,
+    "known_failures": [],
+    "limitations": [],
+    "claim_boundary": null
+  },
+  "review": {
+    "reviewer": null,
+    "reviewed_commit_sha": null,
+    "status": "not_reviewed"
+  }
+}
