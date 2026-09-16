@@ -14,6 +14,7 @@ ENGINEERING_WORKFLOWS = (
     "registry-validation.yml",
     "september-evidence-ledger.yml",
     "september-literacy-pilot-protocol.yml",
+    "fintech-studio-01-starter-kit.yml",
     "train-the-trainer-packet-validation.yml",
     "workflow-supply-chain-contract.yml",
 )
