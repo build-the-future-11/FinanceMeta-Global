@@ -1,0 +1,134 @@
+name: Quant Cohort 01 pre-result contract
+
+on:
+  pull_request:
+    paths:
+      - 'evaluation/quant-research-cohort-01/**'
+      - '.github/workflows/quant-cohort01-contract.yml'
+  push:
+    branches:
+      - 'research/quant-cohort01-contract'
+    paths:
+      - 'evaluation/quant-research-cohort-01/**'
+      - '.github/workflows/quant-cohort01-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quant-cohort01-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  verify-pre-result-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          test -z "$(git status --porcelain=v1 --untracked-files=normal)"
+
+      - name: Validate frozen pre-result boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('evaluation/quant-research-cohort-01')
+          contract_path = root / 'experiment_contract.json'
+          manifest_path = root / 'data_manifest.json'
+          readme_path = root / 'README.md'
+
+          for path in (contract_path, manifest_path, readme_path):
+              if not path.is_file():
+                  raise SystemExit(f'missing required pre-result artifact: {path}')
+
+          contract = json.loads(contract_path.read_text(encoding='utf-8'))
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+
+          assert contract['schema_version'] == '1.0.0'
+          assert contract['status'] == 'pre_result_proposal'
+          assert contract['cohort'] == 'FinanceMeta Quant Research Cohort 01'
+          assert contract['claim_boundary']['negative_result_is_valid'] is True
+
+          chronology = contract['chronology']
+          assert chronology['random_split_forbidden'] is True
+          assert chronology['held_out_access_authorized'] is False
+          assert chronology['held_out_test'] == {
+              'start_inclusive': '2024-01-01T00:00:00Z',
+              'end_exclusive': '2025-01-01T00:00:00Z',
+          }
+          assert len(chronology['held_out_unlock_requires']) >= 5
+
+          candidate = contract['candidate']
+          assert candidate['seeds'] == [260909, 260913, 260919, 260927, 260933]
+          assert candidate['selection_metric'] == 'mean validation ROC-AUC across the five frozen seeds'
+          assert contract['metrics']['primary_predictive'] == 'ROC-AUC on held_out_test'
+          assert contract['metrics']['uncertainty']['replicates'] == 2000
+          assert contract['metrics']['uncertainty']['block_length_hours'] == 168
+
+          integrity_rules = contract['integrity_rules']
+          if not any('No held-out test inspection' in rule for rule in integrity_rules):
+              raise AssertionError('missing explicit held-out inspection prohibition')
+          if not any('failed or null result completes the cohort' in rule for rule in integrity_rules):
+              raise AssertionError('missing retained-null-result rule')
+
+          assert manifest['schema_version'] == '1.0.0'
+          assert manifest['status'] == 'prelock_pending_archive_checksum_capture'
+          assert manifest['dataset_id'] == 'financemeta-qrc01-btcusdt-spot-1h-2020-2024'
+          assert manifest['archive_range']['expected_monthly_archive_count'] == 60
+          assert manifest['timestamp_contract']['post_2025_data_forbidden'] is True
+          assert manifest['split_contract']['random_split_forbidden'] is True
+          assert manifest['archive_checksums'] == []
+
+          required_locks = set(manifest['lock_fields_required_before_modeling'])
+          for field in {
+              'archive_checksums[60]',
+              'canonical_raw_sha256',
+              'loader_source_commit_sha',
+              'excluded_sample_count_by_split',
+          }:
+              assert field in required_locks, f'missing lock field: {field}'
+
+          # This PR is intentionally pre-result. A lock/result appearing here must be
+          # reviewed as a separate state transition rather than silently accepted.
+          assert not (root / 'data_manifest.lock.json').exists()
+          assert not (root / 'results').exists()
+
+          print('PASS_PRE_RESULT_CONTRACT')
+          print('held_out_access_authorized=false')
+          print('archive_checksums=0/60 (prelock as declared)')
+          PY
+
+      - name: Record source-bound contract identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '## Quant Cohort 01 pre-result contract'
+            echo
+            echo "- Exact source: ${SOURCE_SHA}"
+            echo '- Scientific execution: not performed'
+            echo '- Held-out access: remains unauthorized'
+            echo '- Dataset archive/checksum retrieval: not performed by CI'
+            echo '- Contract SHA-256:'
+            sha256sum evaluation/quant-research-cohort-01/experiment_contract.json
+            echo '- Manifest SHA-256:'
+            sha256sum evaluation/quant-research-cohort-01/data_manifest.json
+          } | tee contract-validation-receipt.txt
+          cat contract-validation-receipt.txt >> "$GITHUB_STEP_SUMMARY"
