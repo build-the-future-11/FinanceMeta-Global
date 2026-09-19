@@ -2,6 +2,8 @@ name: FinTech Studio 01 starter kit
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "operations/fintech-studio-01/**"
       - ".github/workflows/fintech-studio-01-starter-kit.yml"
