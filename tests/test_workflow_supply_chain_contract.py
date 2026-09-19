@@ -60,6 +60,12 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
                 self.assertIn("git rev-parse HEAD", text)
                 self.assertIn('"${SOURCE_SHA}"', text)
 
+    def test_fintech_studio_cancels_superseded_runs(self) -> None:
+        text = self._read("fintech-studio-01-starter-kit.yml")
+        self.assertIn("concurrency:", text)
+        self.assertIn("group: fintech-studio-01-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}", text)
+        self.assertIn("cancel-in-progress: true", text)
+
 
 if __name__ == "__main__":
     unittest.main()
