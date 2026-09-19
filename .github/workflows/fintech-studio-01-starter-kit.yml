@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: fintech-studio-01-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
