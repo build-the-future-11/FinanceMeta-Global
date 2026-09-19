@@ -11,6 +11,7 @@ ENGINEERING_WORKFLOWS = (
     "five-foundations-resource.yml",
     "fmp-buildathon-contract.yml",
     "nov1-stock-pitch-position.yml",
+    "quant-cohort01-contract.yml",
     "registry-validation.yml",
     "september-evidence-ledger.yml",
     "september-literacy-pilot-protocol.yml",

@@ -1,0 +1,206 @@
+{
+  "schema_version": "1.0.0",
+  "status": "pre_result_proposal",
+  "cohort": "FinanceMeta Quant Research Cohort 01",
+  "issue": 35,
+  "created_utc": "2026-09-09T00:00:00Z",
+  "claim_boundary": {
+    "allowed": "A bounded retrospective benchmark of next-hour BTCUSDT direction prediction under a frozen historical split and simulated cost assumptions.",
+    "not_allowed": [
+      "live-trading profitability",
+      "investment advice",
+      "exchange-specific execution claims",
+      "generalization beyond the frozen BTCUSDT period",
+      "a claim of market inefficiency from one positive backtest"
+    ],
+    "negative_result_is_valid": true
+  },
+  "research_question": "Using only information available by the close of hour t, does a random-forest signal improve held-out next-hour direction prediction over persistence and logistic regression, and does any predictive improvement survive prespecified simulated transaction costs across frozen volatility/trend regimes?",
+  "dataset": {
+    "source_family": "Binance Public Data / Binance Vision spot monthly klines",
+    "symbol": "BTCUSDT",
+    "market": "spot",
+    "interval": "1h",
+    "archive_start_month": "2020-01",
+    "archive_end_month": "2024-12",
+    "reason_for_end_month": "Stop before 2025-01-01, when the official public-data repository states that spot timestamps change from milliseconds to microseconds.",
+    "required_raw_columns": [
+      "open_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume",
+      "close_time",
+      "quote_asset_volume",
+      "number_of_trades",
+      "taker_buy_base_asset_volume",
+      "taker_buy_quote_asset_volume"
+    ],
+    "raw_archive_policy": "Download the 60 monthly ZIP archives and their official .CHECKSUM companions. Verify every archive before parsing and lock observed SHA-256 values in data_manifest.lock.json. Archived-file replacement is treated as a new dataset version, never silently accepted.",
+    "gap_policy": "Audit hourly open_time continuity. Never forward-fill OHLCV. Drop any sample whose feature lookback, entry bar, or exit bar intersects a missing/duplicate/non-monotonic timestamp and report every excluded interval before modeling.",
+    "duplicate_policy": "Exact duplicate open_time rows are forbidden; conflicting duplicate open_time rows fail the data gate.",
+    "timezone": "UTC"
+  },
+  "chronology": {
+    "train": {
+      "start_inclusive": "2020-01-01T00:00:00Z",
+      "end_exclusive": "2023-01-01T00:00:00Z"
+    },
+    "validation": {
+      "start_inclusive": "2023-01-01T00:00:00Z",
+      "end_exclusive": "2024-01-01T00:00:00Z"
+    },
+    "held_out_test": {
+      "start_inclusive": "2024-01-01T00:00:00Z",
+      "end_exclusive": "2025-01-01T00:00:00Z"
+    },
+    "random_split_forbidden": true,
+    "held_out_access_authorized": false,
+    "held_out_unlock_requires": [
+      "data_manifest.lock.json committed",
+      "feature/label leakage audit committed",
+      "selected candidate configuration committed from validation only",
+      "independent reproducibility reviewer sign-off recorded",
+      "source commit SHA recorded"
+    ]
+  },
+  "sample_definition": {
+    "signal_bar": "hour t",
+    "information_cutoff": "close of hour t",
+    "entry": "open of hour t+1",
+    "exit": "open of hour t+2",
+    "target_return": "ln(open[t+2] / open[t+1])",
+    "binary_target": "1 if target_return > 0 else 0",
+    "zero_return_class": 0,
+    "overlap": "Signals are generated hourly; uncertainty therefore uses time-block resampling rather than IID resampling."
+  },
+  "features": {
+    "all_features_must_be_available_by_signal_bar_close": true,
+    "feature_set": [
+      "close_log_return_1h",
+      "close_log_return_3h",
+      "close_log_return_6h",
+      "close_log_return_12h",
+      "close_log_return_24h",
+      "close_log_return_168h",
+      "realized_volatility_6h",
+      "realized_volatility_24h",
+      "realized_volatility_168h",
+      "log_high_low_range_current",
+      "log_high_low_range_mean_6h",
+      "log_high_low_range_mean_24h",
+      "log_volume_zscore_168h",
+      "number_of_trades_zscore_168h",
+      "taker_buy_share_current",
+      "taker_buy_share_mean_24h",
+      "hour_of_day_sin",
+      "hour_of_day_cos",
+      "day_of_week_sin",
+      "day_of_week_cos"
+    ],
+    "rolling_convention": "Trailing windows end at bar t and never include t+1 or later.",
+    "normalization": "Only logistic regression is standardized; scaler is fit on the training split only and applied unchanged to validation/test.",
+    "missing_feature_policy": "Drop rows until all frozen lookbacks are defined; never impute from future observations."
+  },
+  "baselines": {
+    "historical_mean": "Constant probability equal to the training-set positive-class rate.",
+    "persistence": "Use close_log_return_1h as the ranking score; predicted class is 1 when close_log_return_1h > 0, else 0.",
+    "linear": {
+      "model": "sklearn.linear_model.LogisticRegression",
+      "penalty": "l2",
+      "C": 1.0,
+      "solver": "lbfgs",
+      "max_iter": 2000,
+      "class_weight": null
+    }
+  },
+  "candidate": {
+    "family": "sklearn.ensemble.RandomForestClassifier",
+    "fixed": {
+      "n_estimators": 500,
+      "max_features": "sqrt",
+      "bootstrap": true,
+      "class_weight": null,
+      "n_jobs": 1
+    },
+    "validation_grid": {
+      "max_depth": [4, 8, null],
+      "min_samples_leaf": [20, 100]
+    },
+    "seeds": [260909, 260913, 260919, 260927, 260933],
+    "selection_metric": "mean validation ROC-AUC across the five frozen seeds",
+    "tie_break": "If mean validation ROC-AUC differs by <= 1e-6, prefer the shallower finite max_depth; then prefer the larger min_samples_leaf.",
+    "held_out_primary_score": "Mean predicted probability across the five frozen seed models after configuration selection is frozen from validation only.",
+    "per_seed_results_required": true
+  },
+  "metrics": {
+    "primary_predictive": "ROC-AUC on held_out_test",
+    "secondary_predictive": [
+      "balanced_accuracy at probability threshold 0.5",
+      "Brier score"
+    ],
+    "primary_comparison": "candidate ensemble ROC-AUC minus logistic-regression ROC-AUC",
+    "uncertainty": {
+      "method": "moving block bootstrap over held_out_test",
+      "block_length_hours": 168,
+      "replicates": 2000,
+      "seed": 260909,
+      "interval": "percentile 95% CI"
+    },
+    "predictive_success_rule": "Only describe the candidate as adding held-out predictive value if delta ROC-AUC >= 0.01 and the 95% moving-block-bootstrap CI lower bound for delta ROC-AUC is > 0. Otherwise report no demonstrated improvement."
+  },
+  "simulated_economic_diagnostic": {
+    "status": "secondary_not_primary",
+    "position_rule": "Long 1 unit when candidate ensemble probability >= 0.55; otherwise flat. Position decided after bar t close and entered at open t+1.",
+    "gross_return": "position[t] * ln(open[t+2] / open[t+1])",
+    "turnover": "abs(position[t] - position[t-1])",
+    "cost_bps_per_unit_turnover": [0.0, 2.5, 5.0, 10.0],
+    "primary_cost_bps_per_unit_turnover": 5.0,
+    "net_return": "gross_return - turnover * cost_bps * 1e-4",
+    "required_outputs": [
+      "mean hourly net return",
+      "annualized Sharpe using sqrt(24*365) only as a descriptive scaling",
+      "cumulative net log return",
+      "turnover",
+      "fraction of time invested"
+    ],
+    "claim_boundary": "This is a retrospective simulated diagnostic, not an executable trading strategy or estimate of realizable profit."
+  },
+  "regimes": {
+    "threshold_source": "training split only",
+    "volatility": "Compute trailing 168h realized volatility. Freeze the training 33rd and 67th percentiles, then apply those fixed thresholds to validation and held-out test as low/mid/high.",
+    "trend": "Compute trailing 168h close log return. Label down_or_flat when <= 0 and up when > 0.",
+    "cross_cells": "Report all six volatility x trend cells with sample counts; retain losing/small cells and never redefine thresholds from held-out outcomes."
+  },
+  "placebo": {
+    "name": "168h timing-shift placebo",
+    "method": "Within each evaluated split, shift the complete feature matrix forward by exactly 168 hourly rows relative to the targets and drop non-overlap; retrain/evaluate the same frozen procedure without changing any hyperparameter budget.",
+    "expected_behavior": "Any genuine short-horizon alignment should materially weaken. A placebo that performs similarly to the aligned model is evidence against the claimed signal."
+  },
+  "artifacts": {
+    "week_1": [
+      "experiment_contract.json",
+      "data_manifest.lock.json",
+      "data_quality_report.json",
+      "leakage_audit.md",
+      "baseline script/notebook"
+    ],
+    "final": [
+      "results/per_seed.csv",
+      "results/per_regime.csv",
+      "results/cost_sensitivity.csv",
+      "results/placebo.csv",
+      "results/primary_summary.json",
+      "report.md",
+      "reproduction command"
+    ]
+  },
+  "integrity_rules": [
+    "No held-out test inspection before the unlock requirements are satisfied.",
+    "No post-hoc feature additions, regime changes, probability-threshold changes, cost changes, seed selection, or metric substitution after held-out unlock.",
+    "No deletion of losing seeds or regimes.",
+    "Any implementation correction after held-out access must be documented with before/after commit SHAs and must not be chosen based on whether it improves the headline result.",
+    "A failed or null result completes the cohort if the protocol and evidence package are reproducible."
+  ]
+}
