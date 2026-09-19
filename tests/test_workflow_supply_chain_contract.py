@@ -66,6 +66,11 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
         self.assertIn("group: fintech-studio-01-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}", text)
         self.assertIn("cancel-in-progress: true", text)
 
+    def test_fintech_studio_push_runs_only_on_main(self) -> None:
+        text = self._read("fintech-studio-01-starter-kit.yml")
+        push_block = text.split("  push:\n", 1)[1].split("  pull_request:\n", 1)[0]
+        self.assertIn("    branches:\n      - main\n", push_block)
+
 
 if __name__ == "__main__":
     unittest.main()
