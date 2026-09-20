@@ -115,6 +115,8 @@ def validate_operations_queue(data: dict) -> list[str]:
         else:
             if parsed_last_verified.isoformat() != last_verified:
                 errors.append("research operations queue: last_verified must be a canonical ISO date")
+            elif parsed_last_verified > date.today():
+                errors.append("research operations queue: last_verified must not be in the future")
 
     claim_boundary = data.get("claim_boundary")
     if not isinstance(claim_boundary, str) or not claim_boundary.strip() or claim_boundary != claim_boundary.strip():
