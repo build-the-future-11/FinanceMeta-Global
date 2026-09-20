@@ -12,6 +12,7 @@ from scripts import validate_registry as vr
 def valid_operations_queue() -> dict:
     return {
         "schema_version": 1,
+        "last_verified": "2026-09-20",
         "claim_boundary": "Operational status only.",
         "items": [
             {
@@ -23,6 +24,8 @@ def valid_operations_queue() -> dict:
                 "claim_status": "NO_RESULT_CLAIM",
                 "held_out_access_authorized": False,
                 "primary_issue": 1,
+                "pull_request": 59,
+                "current_preresult_contract_pr": 59,
                 "dependencies": [2, 3],
                 "exact_head": "a" * 40,
             }
@@ -83,6 +86,45 @@ class RegistryValidationTests(unittest.TestCase):
         data["items"][0]["held_out_access_authorized"] = "false"
         errors = vr.validate_operations_queue(data)
         self.assertIn("operations item ops-1: held_out_access_authorized must be boolean", errors)
+
+    def test_operations_queue_rejects_true_held_out_flag(self) -> None:
+        data = valid_operations_queue()
+        data["items"][0]["held_out_access_authorized"] = True
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: held_out_access_authorized must remain false in this pre-result operations registry",
+            errors,
+        )
+
+    def test_operations_queue_rejects_invalid_last_verified_date(self) -> None:
+        data = valid_operations_queue()
+        data["last_verified"] = "2026-02-30"
+        errors = vr.validate_operations_queue(data)
+        self.assertIn("research operations queue: last_verified must be a canonical ISO date", errors)
+
+    def test_operations_queue_rejects_invalid_current_pr_reference(self) -> None:
+        data = valid_operations_queue()
+        data["items"][0]["current_preresult_contract_pr"] = "59"
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: current_preresult_contract_pr must be a positive integer",
+            errors,
+        )
+
+    def test_operations_queue_rejects_dangling_current_pr_reference(self) -> None:
+        data = valid_operations_queue()
+        data["items"][0]["current_preresult_contract_pr"] = 60
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: current_preresult_contract_pr must reference a pull_request declared in this queue",
+            errors,
+        )
+
+    def test_operations_queue_rejects_noncanonical_optional_state(self) -> None:
+        data = valid_operations_queue()
+        data["items"][0]["owner_state"] = "  ACCEPTED  "
+        errors = vr.validate_operations_queue(data)
+        self.assertIn("operations item ops-1: owner_state must be a canonical non-empty string", errors)
 
     def test_operations_queue_rejects_invalid_exact_head(self) -> None:
         data = valid_operations_queue()
