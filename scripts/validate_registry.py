@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 PROGRAMS = ROOT / "registry" / "programs.json"
 PROJECTS = ROOT / "registry" / "projects.json"
+OPERATIONS_QUEUE = ROOT / "registry" / "research_operations_queue.json"
 
 EVIDENCE = {f"E{i}" for i in range(6)}
 MATURITY = {f"M{i}" for i in range(6)}
@@ -28,6 +30,7 @@ PROJECT_STATUS = {
     "external_outcome",
     "archived",
 }
+HEX_SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
 def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
@@ -95,15 +98,72 @@ def repository_path(path: str) -> Path:
     return candidate
 
 
+def validate_operations_queue(data: dict) -> list[str]:
+    errors: list[str] = []
+    if data.get("schema_version") != 1:
+        errors.append("research operations queue: schema_version must equal 1")
+    claim_boundary = data.get("claim_boundary")
+    if not isinstance(claim_boundary, str) or not claim_boundary.strip() or claim_boundary != claim_boundary.strip():
+        errors.append("research operations queue: claim_boundary must be a canonical non-empty string")
+
+    items = data.get("items")
+    if not isinstance(items, list):
+        errors.append("research operations queue: items must be a list")
+        return errors
+
+    unique_ids(items, "research operations queue items")
+
+    for item in items:
+        item_id = item["id"]
+        for field in ("program", "state", "next_artifact", "blocker", "claim_status"):
+            value = item.get(field)
+            if not isinstance(value, str) or not value.strip() or value != value.strip():
+                errors.append(f"operations item {item_id}: {field} must be a canonical non-empty string")
+
+        if "held_out_access_authorized" in item and not isinstance(item["held_out_access_authorized"], bool):
+            errors.append(f"operations item {item_id}: held_out_access_authorized must be boolean")
+
+        for field in ("primary_issue", "pull_request"):
+            if field in item:
+                value = item[field]
+                if type(value) is not int or value <= 0:
+                    errors.append(f"operations item {item_id}: {field} must be a positive integer")
+
+        if "verified_completed_general_applications" in item:
+            value = item["verified_completed_general_applications"]
+            if type(value) is not int or value < 0:
+                errors.append(
+                    f"operations item {item_id}: verified_completed_general_applications must be a non-negative integer"
+                )
+
+        if "dependencies" in item:
+            dependencies = item["dependencies"]
+            if (
+                not isinstance(dependencies, list)
+                or any(type(value) is not int or value <= 0 for value in dependencies)
+            ):
+                errors.append(f"operations item {item_id}: dependencies must be a list of positive integers")
+            elif len(dependencies) != len(set(dependencies)):
+                errors.append(f"operations item {item_id}: dependencies must not contain duplicates")
+
+        if "exact_head" in item:
+            exact_head = item["exact_head"]
+            if not isinstance(exact_head, str) or not HEX_SHA.fullmatch(exact_head):
+                errors.append(f"operations item {item_id}: exact_head must be a lowercase 40-character Git SHA")
+
+    return errors
+
+
 def main() -> None:
     programs = load(PROGRAMS).get("programs")
     projects = load(PROJECTS).get("projects")
+    operations_data = load(OPERATIONS_QUEUE)
     if not isinstance(programs, list) or not isinstance(projects, list):
         raise SystemExit("registry documents must contain list-valued programs/projects")
 
     unique_ids(programs, "programs")
     unique_ids(projects, "projects")
-    errors: list[str] = []
+    errors: list[str] = validate_operations_queue(operations_data)
 
     for p in programs:
         pid = p["id"]
@@ -175,7 +235,11 @@ def main() -> None:
     if errors:
         raise SystemExit("registry validation failed:\n- " + "\n- ".join(errors))
 
-    print(f"REGISTRY VALIDATION: PASS ({len(programs)} programs, {len(projects)} projects)")
+    operations = operations_data["items"]
+    print(
+        "REGISTRY VALIDATION: PASS "
+        f"({len(programs)} programs, {len(projects)} projects, {len(operations)} operations items)"
+    )
 
 
 if __name__ == "__main__":
