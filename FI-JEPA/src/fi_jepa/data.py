@@ -23,7 +23,7 @@ class WindowedSplit:
 def make_synthetic_market(
     *, observations: int = 640, features: int = 6, seed: int = 7
 ) -> FloatArray:
-    """Create a deterministic, regime-switching return panel for smoke experiments."""
+    """Create a deterministic, regime-switching raw return panel for smoke experiments."""
     if observations < 80:
         raise ValueError("observations must be at least 80")
     if features < 2:
@@ -43,9 +43,7 @@ def make_synthetic_market(
         noise = rng.normal(0.0, idiosyncratic_scale)
         series[t] = autoregressive + cross_section + noise
 
-    means = series.mean(axis=0, keepdims=True)
-    scales = series.std(axis=0, keepdims=True)
-    return (series - means) / np.where(scales < 1e-12, 1.0, scales)
+    return series
 
 
 def chronological_windows(
@@ -55,7 +53,7 @@ def chronological_windows(
     target_length: int = 6,
     train_fraction: float = 0.7,
 ) -> WindowedSplit:
-    """Create disjoint train/validation windows with targets strictly after context."""
+    """Create disjoint normalized windows using training-only normalization statistics."""
     values = np.asarray(series, dtype=np.float64)
     if values.ndim != 2:
         raise ValueError("series must have shape [time, features]")
@@ -66,6 +64,12 @@ def chronological_windows(
 
     total = values.shape[0]
     split_index = int(total * train_fraction)
+
+    train_reference = values[:split_index]
+    means = train_reference.mean(axis=0, keepdims=True)
+    scales = train_reference.std(axis=0, keepdims=True)
+    normalized = (values - means) / np.where(scales < 1e-12, 1.0, scales)
+
     starts = np.arange(0, total - context_length - target_length + 1, dtype=np.int64)
     context_end = starts + context_length
     target_end = context_end + target_length
@@ -76,9 +80,12 @@ def chronological_windows(
         raise ValueError("not enough observations for disjoint chronological windows")
 
     def build(indices: IntArray) -> tuple[FloatArray, FloatArray]:
-        contexts = np.stack([values[i : i + context_length] for i in indices])
+        contexts = np.stack([normalized[i : i + context_length] for i in indices])
         targets = np.stack(
-            [values[i + context_length : i + context_length + target_length] for i in indices]
+            [
+                normalized[i + context_length : i + context_length + target_length]
+                for i in indices
+            ]
         )
         return contexts, targets
 
