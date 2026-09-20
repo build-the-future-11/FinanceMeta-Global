@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import date
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -102,6 +103,19 @@ def validate_operations_queue(data: dict) -> list[str]:
     errors: list[str] = []
     if data.get("schema_version") != 1:
         errors.append("research operations queue: schema_version must equal 1")
+
+    last_verified = data.get("last_verified")
+    if not isinstance(last_verified, str) or not last_verified.strip() or last_verified != last_verified.strip():
+        errors.append("research operations queue: last_verified must be a canonical ISO date")
+    else:
+        try:
+            parsed_last_verified = date.fromisoformat(last_verified)
+        except ValueError:
+            errors.append("research operations queue: last_verified must be a canonical ISO date")
+        else:
+            if parsed_last_verified.isoformat() != last_verified:
+                errors.append("research operations queue: last_verified must be a canonical ISO date")
+
     claim_boundary = data.get("claim_boundary")
     if not isinstance(claim_boundary, str) or not claim_boundary.strip() or claim_boundary != claim_boundary.strip():
         errors.append("research operations queue: claim_boundary must be a canonical non-empty string")
@@ -120,10 +134,22 @@ def validate_operations_queue(data: dict) -> list[str]:
             if not isinstance(value, str) or not value.strip() or value != value.strip():
                 errors.append(f"operations item {item_id}: {field} must be a canonical non-empty string")
 
-        if "held_out_access_authorized" in item and not isinstance(item["held_out_access_authorized"], bool):
-            errors.append(f"operations item {item_id}: held_out_access_authorized must be boolean")
+        for field in ("owner_state", "reviewer_state", "verification_state", "canonical_general_form"):
+            if field in item:
+                value = item[field]
+                if not isinstance(value, str) or not value.strip() or value != value.strip():
+                    errors.append(f"operations item {item_id}: {field} must be a canonical non-empty string")
 
-        for field in ("primary_issue", "pull_request"):
+        if "held_out_access_authorized" in item:
+            held_out_access_authorized = item["held_out_access_authorized"]
+            if not isinstance(held_out_access_authorized, bool):
+                errors.append(f"operations item {item_id}: held_out_access_authorized must be boolean")
+            elif held_out_access_authorized:
+                errors.append(
+                    f"operations item {item_id}: held_out_access_authorized must remain false in this pre-result operations registry"
+                )
+
+        for field in ("primary_issue", "pull_request", "current_preresult_contract_pr"):
             if field in item:
                 value = item[field]
                 if type(value) is not int or value <= 0:
@@ -150,6 +176,18 @@ def validate_operations_queue(data: dict) -> list[str]:
             exact_head = item["exact_head"]
             if not isinstance(exact_head, str) or not HEX_SHA.fullmatch(exact_head):
                 errors.append(f"operations item {item_id}: exact_head must be a lowercase 40-character Git SHA")
+
+    declared_pull_requests = {
+        item["pull_request"]
+        for item in items
+        if type(item.get("pull_request")) is int and item["pull_request"] > 0
+    }
+    for item in items:
+        contract_pr = item.get("current_preresult_contract_pr")
+        if type(contract_pr) is int and contract_pr > 0 and contract_pr not in declared_pull_requests:
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference a pull_request declared in this queue"
+            )
 
     return errors
 
