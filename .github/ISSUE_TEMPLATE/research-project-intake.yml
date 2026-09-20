@@ -1,0 +1,91 @@
+name: Research project intake
+description: Propose a bounded FinanceMeta research project before outcome access.
+title: "[Research Intake] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for new outcome-bearing research. It does not authorize held-out access or imply project acceptance.
+  - type: input
+    id: question
+    attributes:
+      label: Falsifiable research question
+      description: One narrow question that can be answered by a bounded study.
+    validations:
+      required: true
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis, null, and failure condition
+      description: State what would count against the proposed effect or mechanism.
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data source and point-in-time contract
+      description: Dataset/source, license, timestamps, chronology, universe rule, and missing/conflicting-data policy.
+    validations:
+      required: true
+  - type: textarea
+    id: leakage
+    attributes:
+      label: Principal leakage risks
+      description: Explain how future information, normalization, survivorship, target overlap, revised data, topology, or post-hoc slicing could invalidate the study.
+    validations:
+      required: true
+  - type: textarea
+    id: baselines
+    attributes:
+      label: Baselines and negative controls
+      description: Include a naive baseline, transparent statistical baseline where applicable, and at least one placebo/timing-shift/permutation control.
+    validations:
+      required: true
+  - type: textarea
+    id: regimes
+    attributes:
+      label: Regime definitions
+      description: If applicable, define regimes before held-out access and explain why they are scientifically relevant. Write N/A if not applicable.
+    validations:
+      required: true
+  - type: textarea
+    id: costs
+    attributes:
+      label: Transaction-cost / execution assumptions
+      description: If economic performance will be reported, state fee, spread/slippage, turnover, execution timing, rebalance rule, and sensitivity levels. Write N/A otherwise.
+    validations:
+      required: true
+  - type: textarea
+    id: freeze
+    attributes:
+      label: Pre-result freeze plan
+      description: Source SHA/config, environment lock, seeds, metrics, search budget, falsification threshold, and exact artifact that will prove the freeze.
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Proposed research owner
+    validations:
+      required: true
+  - type: input
+    id: reviewer
+    attributes:
+      label: Proposed independent reviewer
+      description: Must be independent of outcome-driven model/config selection.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Integrity acknowledgement
+      options:
+        - label: I will not inspect held-out outcomes before explicit reviewer unlock.
+          required: true
+        - label: I will retain negative, null, mixed, and failed runs rather than tuning them away.
+          required: true
+        - label: I will label any post-outcome protocol change as exploratory or create a separately frozen confirmatory study.
+          required: true
+        - label: I will not describe simulated/backtested results as live profitability or investment advice.
+          required: true
