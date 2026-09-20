@@ -9,6 +9,27 @@ from unittest.mock import patch
 from scripts import validate_registry as vr
 
 
+def valid_operations_queue() -> dict:
+    return {
+        "schema_version": 1,
+        "claim_boundary": "Operational status only.",
+        "items": [
+            {
+                "id": "ops-1",
+                "program": "Operations",
+                "state": "OPEN",
+                "next_artifact": "review",
+                "blocker": "pending review",
+                "claim_status": "NO_RESULT_CLAIM",
+                "held_out_access_authorized": False,
+                "primary_issue": 1,
+                "dependencies": [2, 3],
+                "exact_head": "a" * 40,
+            }
+        ],
+    }
+
+
 class RegistryValidationTests(unittest.TestCase):
     def test_unique_ids_rejects_non_object_records(self) -> None:
         with self.assertRaisesRegex(SystemExit, "every record must be an object"):
@@ -57,19 +78,82 @@ class RegistryValidationTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "POSIX separators"):
                     vr.repository_path("nested\\project")
 
+    def test_operations_queue_rejects_non_boolean_held_out_flag(self) -> None:
+        data = valid_operations_queue()
+        data["items"][0]["held_out_access_authorized"] = "false"
+        errors = vr.validate_operations_queue(data)
+        self.assertIn("operations item ops-1: held_out_access_authorized must be boolean", errors)
+
+    def test_operations_queue_rejects_invalid_exact_head(self) -> None:
+        data = valid_operations_queue()
+        data["items"][0]["exact_head"] = "not-a-sha"
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: exact_head must be a lowercase 40-character Git SHA",
+            errors,
+        )
+
+    def test_operations_queue_rejects_duplicate_dependencies(self) -> None:
+        data = valid_operations_queue()
+        data["items"][0]["dependencies"] = [2, 2]
+        errors = vr.validate_operations_queue(data)
+        self.assertIn("operations item ops-1: dependencies must not contain duplicates", errors)
+
     def test_main_rejects_non_boolean_repository_state(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             programs_path = root / "registry" / "programs.json"
             projects_path = root / "registry" / "projects.json"
+            operations_path = root / "registry" / "research_operations_queue.json"
             programs_path.parent.mkdir(parents=True)
             (root / "project").mkdir()
-            programs_path.write_text(json.dumps({"programs": [{"id": "PROGRAM-1", "status": "ready", "minimum_evidence_level": "E1", "launch_gate": "verified"}]}), encoding="utf-8")
-            projects_path.write_text(json.dumps({"projects": [{"id": "PROJECT-1", "path": "project", "maturity": "M1", "evidence_level": "E1", "status": "executable", "claim_boundary": "bounded", "next_gate": "verify", "verified_repository_state": {"readme_present": True, "license_present": True, "implementation_present": True, "tests_present": "yes", "results_present": False, "reproduction_command_present": True}}]}), encoding="utf-8")
+            programs_path.write_text(
+                json.dumps(
+                    {
+                        "programs": [
+                            {
+                                "id": "PROGRAM-1",
+                                "status": "ready",
+                                "minimum_evidence_level": "E1",
+                                "launch_gate": "verified",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            projects_path.write_text(
+                json.dumps(
+                    {
+                        "projects": [
+                            {
+                                "id": "PROJECT-1",
+                                "path": "project",
+                                "maturity": "M1",
+                                "evidence_level": "E1",
+                                "status": "executable",
+                                "claim_boundary": "bounded",
+                                "next_gate": "verify",
+                                "verified_repository_state": {
+                                    "readme_present": True,
+                                    "license_present": True,
+                                    "implementation_present": True,
+                                    "tests_present": "yes",
+                                    "results_present": False,
+                                    "reproduction_command_present": True,
+                                },
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            operations_path.write_text(json.dumps(valid_operations_queue()), encoding="utf-8")
             with (
                 patch.object(vr, "ROOT", root),
                 patch.object(vr, "PROGRAMS", programs_path),
                 patch.object(vr, "PROJECTS", projects_path),
+                patch.object(vr, "OPERATIONS_QUEUE", operations_path),
             ):
                 with self.assertRaisesRegex(SystemExit, "repository-state fields must be booleans"):
                     vr.main()
@@ -79,14 +163,56 @@ class RegistryValidationTests(unittest.TestCase):
             root = Path(directory)
             programs_path = root / "registry" / "programs.json"
             projects_path = root / "registry" / "projects.json"
+            operations_path = root / "registry" / "research_operations_queue.json"
             programs_path.parent.mkdir(parents=True)
             (root / "project").mkdir()
-            programs_path.write_text(json.dumps({"programs": [{"id": "PROGRAM-1", "status": "ready", "minimum_evidence_level": "E1", "launch_gate": "verified"}]}), encoding="utf-8")
-            projects_path.write_text(json.dumps({"projects": [{"id": "PROJECT-1", "path": "project", "maturity": "M1", "evidence_level": "E1", "status": "executable", "claim_boundary": "bounded", "next_gate": "verify", "verified_repository_state": {"readme_present": True, "license_present": True, "implementation_present": True, "tests_present": True, "results_present": False, "reproduction_command_present": True}}]}), encoding="utf-8")
+            programs_path.write_text(
+                json.dumps(
+                    {
+                        "programs": [
+                            {
+                                "id": "PROGRAM-1",
+                                "status": "ready",
+                                "minimum_evidence_level": "E1",
+                                "launch_gate": "verified",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            projects_path.write_text(
+                json.dumps(
+                    {
+                        "projects": [
+                            {
+                                "id": "PROJECT-1",
+                                "path": "project",
+                                "maturity": "M1",
+                                "evidence_level": "E1",
+                                "status": "executable",
+                                "claim_boundary": "bounded",
+                                "next_gate": "verify",
+                                "verified_repository_state": {
+                                    "readme_present": True,
+                                    "license_present": True,
+                                    "implementation_present": True,
+                                    "tests_present": True,
+                                    "results_present": False,
+                                    "reproduction_command_present": True,
+                                },
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            operations_path.write_text(json.dumps(valid_operations_queue()), encoding="utf-8")
             with (
                 patch.object(vr, "ROOT", root),
                 patch.object(vr, "PROGRAMS", programs_path),
                 patch.object(vr, "PROJECTS", projects_path),
+                patch.object(vr, "OPERATIONS_QUEUE", operations_path),
             ):
                 vr.main()
 
