@@ -24,11 +24,21 @@ def valid_operations_queue() -> dict:
                 "claim_status": "NO_RESULT_CLAIM",
                 "held_out_access_authorized": False,
                 "primary_issue": 1,
-                "pull_request": 59,
                 "current_preresult_contract_pr": 59,
                 "dependencies": [2, 3],
+            },
+            {
+                "id": "ops-preresult-contract",
+                "program": "Operations",
+                "state": "ENGINEERING_REVIEW_DRAFT",
+                "next_artifact": "independent review",
+                "blocker": "review pending",
+                "claim_status": "PRE_RESULT_ONLY",
+                "held_out_access_authorized": False,
+                "pull_request": 59,
                 "exact_head": "a" * 40,
-            }
+                "verification_state": "EXACT_HEAD_ENGINEERING_CHECKS_REPORTED_SUCCESS",
+            },
         ],
     }
 
@@ -120,6 +130,50 @@ class RegistryValidationTests(unittest.TestCase):
             errors,
         )
 
+    def test_operations_queue_rejects_duplicate_pull_request_declarations(self) -> None:
+        data = valid_operations_queue()
+        duplicate = dict(data["items"][1])
+        duplicate["id"] = "ops-preresult-contract-duplicate"
+        data["items"].append(duplicate)
+        errors = vr.validate_operations_queue(data)
+        self.assertIn("research operations queue: pull_request 59 must be declared by exactly one item", errors)
+
+    def test_operations_queue_rejects_cross_program_current_pr_reference(self) -> None:
+        data = valid_operations_queue()
+        data["items"][1]["program"] = "Different Program"
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: current_preresult_contract_pr must reference a pull_request for the same program",
+            errors,
+        )
+
+    def test_operations_queue_rejects_non_preresult_current_pr_reference(self) -> None:
+        data = valid_operations_queue()
+        data["items"][1]["claim_status"] = "NO_RESULT_CLAIM"
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: current_preresult_contract_pr must reference a PRE_RESULT_ONLY queue item",
+            errors,
+        )
+
+    def test_operations_queue_requires_referenced_pr_to_explicitly_block_held_out_access(self) -> None:
+        data = valid_operations_queue()
+        del data["items"][1]["held_out_access_authorized"]
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: current_preresult_contract_pr must reference an explicitly pre-result pull_request",
+            errors,
+        )
+
+    def test_operations_queue_requires_referenced_pr_exact_head(self) -> None:
+        data = valid_operations_queue()
+        del data["items"][1]["exact_head"]
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item ops-1: current_preresult_contract_pr must reference an exact-head-bound queue item",
+            errors,
+        )
+
     def test_operations_queue_rejects_noncanonical_optional_state(self) -> None:
         data = valid_operations_queue()
         data["items"][0]["owner_state"] = "  ACCEPTED  "
@@ -128,10 +182,10 @@ class RegistryValidationTests(unittest.TestCase):
 
     def test_operations_queue_rejects_invalid_exact_head(self) -> None:
         data = valid_operations_queue()
-        data["items"][0]["exact_head"] = "not-a-sha"
+        data["items"][1]["exact_head"] = "not-a-sha"
         errors = vr.validate_operations_queue(data)
         self.assertIn(
-            "operations item ops-1: exact_head must be a lowercase 40-character Git SHA",
+            "operations item ops-preresult-contract: exact_head must be a lowercase 40-character Git SHA",
             errors,
         )
 
