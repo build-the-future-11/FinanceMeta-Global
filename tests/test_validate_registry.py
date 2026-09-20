@@ -112,6 +112,12 @@ class RegistryValidationTests(unittest.TestCase):
         errors = vr.validate_operations_queue(data)
         self.assertIn("research operations queue: last_verified must be a canonical ISO date", errors)
 
+    def test_operations_queue_rejects_future_last_verified_date(self) -> None:
+        data = valid_operations_queue()
+        data["last_verified"] = "2999-01-01"
+        errors = vr.validate_operations_queue(data)
+        self.assertIn("research operations queue: last_verified must not be in the future", errors)
+
     def test_operations_queue_rejects_invalid_current_pr_reference(self) -> None:
         data = valid_operations_queue()
         data["items"][0]["current_preresult_contract_pr"] = "59"
