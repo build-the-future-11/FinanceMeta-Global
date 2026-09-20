@@ -26,6 +26,45 @@ def test_chronological_split_has_no_shared_observations() -> None:
     assert train_last_observation < validation_first_observation
 
 
+def test_validation_changes_cannot_change_normalized_training_values() -> None:
+    series = make_synthetic_market(observations=320, seed=13)
+    split = chronological_windows(series, context_length=20, target_length=5)
+
+    perturbed = series.copy()
+    perturbed[split.split_index :] += np.linspace(
+        1_000.0, 10_000.0, perturbed.shape[1], dtype=np.float64
+    )
+    perturbed_split = chronological_windows(
+        perturbed, context_length=20, target_length=5
+    )
+
+    assert perturbed_split.split_index == split.split_index
+    np.testing.assert_allclose(perturbed_split.train_context, split.train_context)
+    np.testing.assert_allclose(perturbed_split.train_target, split.train_target)
+
+
+def test_validation_uses_training_fitted_normalization() -> None:
+    series = make_synthetic_market(observations=320, seed=17)
+    split = chronological_windows(series, context_length=20, target_length=5)
+
+    train_reference = series[: split.split_index]
+    means = train_reference.mean(axis=0, keepdims=True)
+    scales = train_reference.std(axis=0, keepdims=True)
+    expected = (series - means) / np.where(scales < 1e-12, 1.0, scales)
+
+    first_validation_start = int(split.validation_indices[0])
+    np.testing.assert_allclose(
+        split.validation_context[0],
+        expected[first_validation_start : first_validation_start + 20],
+    )
+    np.testing.assert_allclose(
+        split.validation_target[0],
+        expected[
+            first_validation_start + 20 : first_validation_start + 20 + 5
+        ],
+    )
+
+
 def test_jepa_optimization_reduces_training_objective() -> None:
     series = make_synthetic_market(observations=360, seed=5)
     split = chronological_windows(series, context_length=18, target_length=4)
