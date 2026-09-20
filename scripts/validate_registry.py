@@ -177,16 +177,42 @@ def validate_operations_queue(data: dict) -> list[str]:
             if not isinstance(exact_head, str) or not HEX_SHA.fullmatch(exact_head):
                 errors.append(f"operations item {item_id}: exact_head must be a lowercase 40-character Git SHA")
 
-    declared_pull_requests = {
-        item["pull_request"]
-        for item in items
-        if type(item.get("pull_request")) is int and item["pull_request"] > 0
-    }
+    declared_pull_request_items: dict[int, dict] = {}
+    for item in items:
+        pull_request = item.get("pull_request")
+        if type(pull_request) is not int or pull_request <= 0:
+            continue
+        if pull_request in declared_pull_request_items:
+            errors.append(f"research operations queue: pull_request {pull_request} must be declared by exactly one item")
+            continue
+        declared_pull_request_items[pull_request] = item
+
     for item in items:
         contract_pr = item.get("current_preresult_contract_pr")
-        if type(contract_pr) is int and contract_pr > 0 and contract_pr not in declared_pull_requests:
+        if type(contract_pr) is not int or contract_pr <= 0:
+            continue
+        referenced = declared_pull_request_items.get(contract_pr)
+        if referenced is None:
             errors.append(
                 f"operations item {item['id']}: current_preresult_contract_pr must reference a pull_request declared in this queue"
+            )
+            continue
+        if referenced.get("program") != item.get("program"):
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference a pull_request for the same program"
+            )
+        if referenced.get("held_out_access_authorized") is not False:
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference an explicitly pre-result pull_request"
+            )
+        if referenced.get("claim_status") != "PRE_RESULT_ONLY":
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference a PRE_RESULT_ONLY queue item"
+            )
+        referenced_head = referenced.get("exact_head")
+        if not isinstance(referenced_head, str) or not HEX_SHA.fullmatch(referenced_head):
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference an exact-head-bound queue item"
             )
 
     return errors
