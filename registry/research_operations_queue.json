@@ -11,10 +11,23 @@
       "reviewer_state": "UNVERIFIED_EXPLICIT_ACCEPTANCE",
       "held_out_access_authorized": false,
       "primary_issue": 35,
+      "current_preresult_contract_pr": 59,
       "dependencies": [37, 38, 56],
       "next_artifact": "explicit role acceptances plus raw-data integrity lock",
       "blocker": "staffing gate and raw-data lock are not closed",
       "claim_status": "NO_RESULT_CLAIM"
+    },
+    {
+      "id": "quant-preresult-contract",
+      "program": "Quant Research Cohort 01",
+      "state": "ENGINEERING_REVIEW_DRAFT",
+      "held_out_access_authorized": false,
+      "pull_request": 59,
+      "exact_head": "26e5cfa0e305bc1b01b5edbaeec031f62b85febc",
+      "verification_state": "EXACT_HEAD_ENGINEERING_CHECKS_REPORTED_SUCCESS",
+      "next_artifact": "independent review plus data lock; no scientific execution",
+      "blocker": "repository/reproducibility green is not held-out authorization",
+      "claim_status": "PRE_RESULT_ONLY"
     },
     {
       "id": "quant-data-lock",
@@ -54,6 +67,16 @@
       "next_artifact": "one primary route plus named trial owner/reviewer/artifact/due-date/evidence-location for every serious applicant",
       "blocker": "current queue does not yet evidence complete one-route-per-applicant conversion",
       "claim_status": "APPLICATION_IS_NOT_ACTIVATION"
+    },
+    {
+      "id": "intake-form-control",
+      "program": "Portfolio operations",
+      "state": "CONSOLIDATION_NEEDED",
+      "canonical_general_form": "5B7blP",
+      "verified_completed_general_applications": 4,
+      "next_artifact": "route existing submissions before creating or reopening another contributor intake",
+      "blocker": "multiple specialized/duplicate open forms have zero submissions and fragment the source of truth",
+      "claim_status": "FORM_COUNT_IS_NOT_PIPELINE_PROGRESS"
     },
     {
       "id": "canonical-main-protection",
