@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "last_verified": "2026-09-20",
+  "claim_boundary": "Operational status only. This registry does not authorize held-out access, model training, launch claims, or research conclusions.",
+  "items": [
+    {
+      "id": "quant-cohort-01",
+      "program": "Quant Research Cohort 01",
+      "state": "FORMING",
+      "owner_state": "UNVERIFIED_EXPLICIT_ACCEPTANCE",
+      "reviewer_state": "UNVERIFIED_EXPLICIT_ACCEPTANCE",
+      "held_out_access_authorized": false,
+      "primary_issue": 35,
+      "dependencies": [37, 38, 56],
+      "next_artifact": "explicit role acceptances plus raw-data integrity lock",
+      "blocker": "staffing gate and raw-data lock are not closed",
+      "claim_status": "NO_RESULT_CLAIM"
+    },
+    {
+      "id": "quant-data-lock",
+      "program": "Quant Research Cohort 01",
+      "state": "PRE_RESULT_INFRASTRUCTURE_OPEN",
+      "held_out_access_authorized": false,
+      "primary_issue": 37,
+      "next_artifact": "data_manifest.lock.json plus data_quality_report.json from frozen 60-archive source family",
+      "blocker": "integrity lock not yet evidenced as complete",
+      "claim_status": "NO_MODEL_OR_OUTCOME_CLAIM"
+    },
+    {
+      "id": "fintech-studio-01",
+      "program": "FinTech Studio 01",
+      "state": "FORMING",
+      "primary_issue": 47,
+      "dependencies": [56, 58],
+      "next_artifact": "two explicit builder acceptances, one reviewer acceptance, frozen briefs, named canonical implementation surface",
+      "blocker": "staffing and frozen-brief launch gate not closed",
+      "claim_status": "NO_LAUNCH_CLAIM"
+    },
+    {
+      "id": "market-data-integrity-toolkit-v1",
+      "program": "FinTech Studio 01",
+      "state": "FROZEN_SCOPE_NOT_STAFFED",
+      "primary_issue": 58,
+      "next_artifact": "staffed build roles plus frozen brief before implementation",
+      "blocker": "studio owner/builders/reviewer/canonical implementation surface not verified",
+      "claim_status": "NO_BENCHMARK_RESULT"
+    },
+    {
+      "id": "applicant-routing",
+      "program": "Portfolio operations",
+      "state": "OPEN",
+      "primary_issue": 56,
+      "dependencies": [38, 47],
+      "next_artifact": "one primary route plus named trial owner/reviewer/artifact/due-date/evidence-location for every serious applicant",
+      "blocker": "current queue does not yet evidence complete one-route-per-applicant conversion",
+      "claim_status": "APPLICATION_IS_NOT_ACTIVATION"
+    },
+    {
+      "id": "canonical-main-protection",
+      "program": "Repository governance",
+      "state": "OPEN",
+      "primary_issue": 50,
+      "next_artifact": "effective branch/ruleset protection with PR review and stable engineering checks",
+      "blocker": "canonical main reported unprotected in current operating tracker",
+      "claim_status": "CI_GREEN_IS_NOT_MERGE_AUTHORIZATION"
+    }
+  ]
+}
