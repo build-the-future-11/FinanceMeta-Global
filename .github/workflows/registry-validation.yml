@@ -6,13 +6,13 @@ on:
     paths:
       - 'registry/**'
       - 'scripts/validate_registry.py'
-      - 'tests/test_validate_registry.py'
+      - 'tests/test_validate_registry*.py'
       - '.github/workflows/registry-validation.yml'
   pull_request:
     paths:
       - 'registry/**'
       - 'scripts/validate_registry.py'
-      - 'tests/test_validate_registry.py'
+      - 'tests/test_validate_registry*.py'
       - '.github/workflows/registry-validation.yml'
 
 permissions:
@@ -43,9 +43,16 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile validator and regression tests
-        run: python -m py_compile scripts/validate_registry.py tests/test_validate_registry.py
+        run: >-
+          python -m py_compile
+          scripts/validate_registry.py
+          tests/test_validate_registry.py
+          tests/test_validate_registry_pre_result_state.py
       - name: Run registry validator regression tests
-        run: python -m unittest -v tests.test_validate_registry
+        run: >-
+          python -m unittest -v
+          tests.test_validate_registry
+          tests.test_validate_registry_pre_result_state
       - name: Validate evidence registry
         shell: bash
         run: |
@@ -63,7 +70,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sha256sum scripts/validate_registry.py tests/test_validate_registry.py >> registry-validation.txt
+          sha256sum \
+            scripts/validate_registry.py \
+            tests/test_validate_registry.py \
+            tests/test_validate_registry_pre_result_state.py \
+            >> registry-validation.txt
           find registry -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum >> registry-validation.txt
       - name: Upload registry validation evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
