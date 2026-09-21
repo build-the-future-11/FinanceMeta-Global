@@ -4,6 +4,8 @@ import json
 import unittest
 from pathlib import Path
 
+from scripts import validate_registry as vr
+
 
 ROOT = Path(__file__).resolve().parents[1]
 OPERATIONS_QUEUE = ROOT / "registry" / "research_operations_queue.json"
@@ -33,6 +35,30 @@ class PreResultOperationsStateBoundaryTests(unittest.TestCase):
                 "HELD_OUT_UNLOCKED",
                 f"{item_id}: HELD_OUT_UNLOCKED contradicts held_out_access_authorized=false",
             )
+
+    def test_validator_rejects_held_out_unlocked_while_access_is_denied(self) -> None:
+        data = {
+            "schema_version": 1,
+            "last_verified": "2026-09-21",
+            "claim_boundary": "Pre-result operations only.",
+            "items": [
+                {
+                    "id": "contradictory-pre-result-row",
+                    "program": "Research",
+                    "state": "HELD_OUT_UNLOCKED",
+                    "next_artifact": "independent review",
+                    "blocker": "held-out access remains denied",
+                    "claim_status": "PRE_RESULT_ONLY",
+                    "held_out_access_authorized": False,
+                }
+            ],
+        }
+
+        errors = vr.validate_operations_queue(data)
+        self.assertIn(
+            "operations item contradictory-pre-result-row: HELD_OUT_UNLOCKED contradicts held_out_access_authorized=false",
+            errors,
+        )
 
 
 if __name__ == "__main__":
