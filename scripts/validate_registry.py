@@ -149,6 +149,10 @@ def validate_operations_queue(data: dict) -> list[str]:
             errors.append(
                 f"operations item {item_id}: held_out_access_authorized must remain false in this pre-result operations registry"
             )
+        elif item.get("state") == "HELD_OUT_UNLOCKED":
+            errors.append(
+                f"operations item {item_id}: HELD_OUT_UNLOCKED contradicts held_out_access_authorized=false"
+            )
 
         for field in ("primary_issue", "pull_request", "current_preresult_contract_pr"):
             if field in item:
