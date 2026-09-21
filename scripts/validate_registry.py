@@ -142,14 +142,13 @@ def validate_operations_queue(data: dict) -> list[str]:
                 if not isinstance(value, str) or not value.strip() or value != value.strip():
                     errors.append(f"operations item {item_id}: {field} must be a canonical non-empty string")
 
-        if "held_out_access_authorized" in item:
-            held_out_access_authorized = item["held_out_access_authorized"]
-            if not isinstance(held_out_access_authorized, bool):
-                errors.append(f"operations item {item_id}: held_out_access_authorized must be boolean")
-            elif held_out_access_authorized:
-                errors.append(
-                    f"operations item {item_id}: held_out_access_authorized must remain false in this pre-result operations registry"
-                )
+        held_out_access_authorized = item.get("held_out_access_authorized")
+        if not isinstance(held_out_access_authorized, bool):
+            errors.append(f"operations item {item_id}: held_out_access_authorized must be boolean")
+        elif held_out_access_authorized:
+            errors.append(
+                f"operations item {item_id}: held_out_access_authorized must remain false in this pre-result operations registry"
+            )
 
         for field in ("primary_issue", "pull_request", "current_preresult_contract_pr"):
             if field in item:
