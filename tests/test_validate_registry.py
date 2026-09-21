@@ -97,6 +97,12 @@ class RegistryValidationTests(unittest.TestCase):
         errors = vr.validate_operations_queue(data)
         self.assertIn("operations item ops-1: held_out_access_authorized must be boolean", errors)
 
+    def test_operations_queue_rejects_missing_held_out_flag(self) -> None:
+        data = valid_operations_queue()
+        del data["items"][0]["held_out_access_authorized"]
+        errors = vr.validate_operations_queue(data)
+        self.assertIn("operations item ops-1: held_out_access_authorized must be boolean", errors)
+
     def test_operations_queue_rejects_true_held_out_flag(self) -> None:
         data = valid_operations_queue()
         data["items"][0]["held_out_access_authorized"] = True
