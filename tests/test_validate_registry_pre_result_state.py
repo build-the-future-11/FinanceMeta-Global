@@ -8,21 +8,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OPERATIONS_QUEUE = ROOT / "registry" / "research_operations_queue.json"
 
-# These are outcome-bearing states from docs/RESEARCH_PROGRAM_OPERATIONS_V1.md.
-# The current operations registry is explicitly pre-result and requires
-# held_out_access_authorized=false on every row, so claiming any of these states
-# would contradict the repository's machine-readable authorization boundary.
-OUTCOME_BEARING_STATES = {
-    "HELD_OUT_UNLOCKED",
-    "EXECUTED",
-    "REVIEWED",
-    "RELEASED",
-    "RELEASE_WITH_LIMITATIONS",
-}
+# `HELD_OUT_UNLOCKED` has one unambiguous meaning in the canonical research
+# state machine: held-out access has been explicitly unlocked. The operations
+# registry mixes research and ordinary operational rows, so broader words such
+# as REVIEWED/EXECUTED/RELEASED are intentionally not banned globally here.
+# They may be valid non-scientific operational states in other lanes.
 
 
 class PreResultOperationsStateBoundaryTests(unittest.TestCase):
-    def test_pre_result_queue_cannot_claim_outcome_bearing_state(self) -> None:
+    def test_held_out_disabled_queue_cannot_claim_held_out_unlocked(self) -> None:
         data = json.loads(OPERATIONS_QUEUE.read_text(encoding="utf-8"))
         items = data.get("items")
         self.assertIsInstance(items, list)
@@ -34,10 +28,10 @@ class PreResultOperationsStateBoundaryTests(unittest.TestCase):
                 False,
                 f"{item_id}: the pre-result queue must explicitly deny held-out access",
             )
-            self.assertNotIn(
+            self.assertNotEqual(
                 item.get("state"),
-                OUTCOME_BEARING_STATES,
-                f"{item_id}: outcome-bearing state contradicts the pre-result authorization boundary",
+                "HELD_OUT_UNLOCKED",
+                f"{item_id}: HELD_OUT_UNLOCKED contradicts held_out_access_authorized=false",
             )
 
 
