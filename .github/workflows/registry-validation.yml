@@ -6,13 +6,15 @@ on:
     paths:
       - 'registry/**'
       - 'scripts/validate_registry.py'
-      - 'tests/test_validate_registry*.py'
+      - 'tests/test_validate_registry.py'
+      - 'tests/test_validate_registry_pre_result_state.py'
       - '.github/workflows/registry-validation.yml'
   pull_request:
     paths:
       - 'registry/**'
       - 'scripts/validate_registry.py'
-      - 'tests/test_validate_registry*.py'
+      - 'tests/test_validate_registry.py'
+      - 'tests/test_validate_registry_pre_result_state.py'
       - '.github/workflows/registry-validation.yml'
 
 permissions:
