@@ -8,6 +8,7 @@ on:
       - 'scripts/validate_registry.py'
       - 'tests/test_validate_registry.py'
       - 'tests/test_validate_registry_pre_result_state.py'
+      - 'tests/test_registry_workflow_evidence.py'
       - '.github/workflows/registry-validation.yml'
   pull_request:
     paths:
@@ -15,6 +16,7 @@ on:
       - 'scripts/validate_registry.py'
       - 'tests/test_validate_registry.py'
       - 'tests/test_validate_registry_pre_result_state.py'
+      - 'tests/test_registry_workflow_evidence.py'
       - '.github/workflows/registry-validation.yml'
 
 permissions:
@@ -50,19 +52,23 @@ jobs:
           scripts/validate_registry.py
           tests/test_validate_registry.py
           tests/test_validate_registry_pre_result_state.py
+          tests/test_registry_workflow_evidence.py
       - name: Run registry validator regression tests
         run: >-
           python -m unittest -v
           tests.test_validate_registry
           tests.test_validate_registry_pre_result_state
+          tests.test_registry_workflow_evidence
       - name: Validate evidence registry
         shell: bash
         run: |
           set -euo pipefail
           {
             printf 'source_commit=%s\n' "${SOURCE_SHA}"
-            printf 'workflow_commit=%s\n' "$GITHUB_SHA"
-            printf 'workflow_ref=%s\n' "$GITHUB_REF"
+            printf 'workflow_commit=%s\n' "$GITHUB_WORKFLOW_SHA"
+            printf 'event_commit=%s\n' "$GITHUB_SHA"
+            printf 'workflow_ref=%s\n' "$GITHUB_WORKFLOW_REF"
+            printf 'event_ref=%s\n' "$GITHUB_REF"
             printf 'runner_image=%s\n' "${ImageOS:-ubuntu24}"
             printf 'python=%s\n' "$(python --version 2>&1)"
             printf 'pip=%s\n' "$(python -m pip --version)"
@@ -73,9 +79,11 @@ jobs:
         run: |
           set -euo pipefail
           sha256sum \
+            .github/workflows/registry-validation.yml \
             scripts/validate_registry.py \
             tests/test_validate_registry.py \
             tests/test_validate_registry_pre_result_state.py \
+            tests/test_registry_workflow_evidence.py \
             >> registry-validation.txt
           find registry -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum >> registry-validation.txt
       - name: Upload registry validation evidence
