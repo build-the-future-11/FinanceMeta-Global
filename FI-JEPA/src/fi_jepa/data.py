@@ -71,6 +71,10 @@ def chronological_windows(
     values = np.asarray(series, dtype=np.float64)
     if values.ndim != 2:
         raise ValueError("series must have shape [time, features]")
+    if values.shape[0] == 0 or values.shape[1] == 0:
+        raise ValueError("series must have non-empty time and feature axes")
+    if not np.isfinite(values).all():
+        raise ValueError("series must contain only finite values")
     if context_length < 2 or target_length < 1:
         raise ValueError("invalid window lengths")
     if not 0.5 <= train_fraction < 0.9:
