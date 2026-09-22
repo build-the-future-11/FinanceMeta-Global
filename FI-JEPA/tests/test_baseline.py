@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from fi_jepa.cli import run
 from fi_jepa.data import chronological_windows, make_synthetic_market
@@ -29,6 +30,27 @@ def test_chronological_split_has_no_shared_observations() -> None:
     assert train_last_observation < split.split_index
     assert validation_first_observation >= split.split_index
     assert train_last_observation < validation_first_observation
+
+
+def test_chronological_windows_rejects_non_finite_inputs() -> None:
+    series = make_synthetic_market(observations=320, seed=19, normalize=False)
+    for invalid in (np.nan, np.inf, -np.inf):
+        malformed = series.copy()
+        malformed[17, 2] = invalid
+        with pytest.raises(ValueError, match="series must contain only finite values"):
+            chronological_windows(malformed, context_length=20, target_length=5)
+
+
+def test_chronological_windows_rejects_empty_axes() -> None:
+    with pytest.raises(
+        ValueError, match="series must have non-empty time and feature axes"
+    ):
+        chronological_windows(np.empty((100, 0), dtype=np.float64))
+
+    with pytest.raises(
+        ValueError, match="series must have non-empty time and feature axes"
+    ):
+        chronological_windows(np.empty((0, 4), dtype=np.float64))
 
 
 def test_validation_changes_cannot_change_normalized_training_values() -> None:
