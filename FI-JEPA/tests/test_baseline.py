@@ -110,6 +110,14 @@ def test_chronological_windows_rejects_insufficient_split_before_statistics() ->
         chronological_windows(series, context_length=20, target_length=5)
 
 
+def test_chronological_windows_rejects_overflowed_training_statistics() -> None:
+    series = np.full((320, 4), np.finfo(np.float64).max, dtype=np.float64)
+    with pytest.raises(
+        ValueError, match="training normalization statistics must be finite"
+    ):
+        chronological_windows(series, context_length=20, target_length=5)
+
+
 def test_validation_changes_cannot_change_normalized_training_values() -> None:
     series = make_synthetic_market(observations=320, seed=13, normalize=False)
     split = chronological_windows(series, context_length=20, target_length=5)
@@ -147,6 +155,21 @@ def test_validation_uses_training_fitted_normalization() -> None:
             first_validation_start + 20 : first_validation_start + 20 + 5
         ],
     )
+
+
+def test_model_rejects_finite_inputs_that_overflow_computation() -> None:
+    model = FIJEPA(features=2, target_length=2, embedding_dim=2, seed=31)
+    huge_context = np.full((2, 2, 2), np.finfo(np.float64).max, dtype=np.float64)
+    targets = np.zeros((2, 2, 2), dtype=np.float64)
+
+    with pytest.raises(ValueError, match="context encoding produced non-finite values"):
+        model.encode(huge_context)
+    with pytest.raises(ValueError, match="loss prediction produced non-finite values"):
+        model.loss(huge_context, targets)
+    with pytest.raises(
+        ValueError, match="training context mean produced non-finite values"
+    ):
+        model.fit(huge_context, targets, epochs=1)
 
 
 def test_jepa_optimization_reduces_training_objective() -> None:
