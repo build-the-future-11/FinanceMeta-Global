@@ -22,6 +22,17 @@ def test_synthetic_market_is_deterministic_and_preserves_default_scale_contract(
     np.testing.assert_allclose(first.std(axis=0), 1.0, atol=1e-12)
 
 
+def test_synthetic_market_rejects_non_integer_dimensions() -> None:
+    with pytest.raises(ValueError, match="observations must be an integer"):
+        make_synthetic_market(observations=80.5)
+    with pytest.raises(ValueError, match="observations must be an integer"):
+        make_synthetic_market(observations=True)
+    with pytest.raises(ValueError, match="features must be an integer"):
+        make_synthetic_market(features=2.5)
+    with pytest.raises(ValueError, match="features must be an integer"):
+        make_synthetic_market(features=False)
+
+
 def test_chronological_split_has_no_shared_observations() -> None:
     series = make_synthetic_market(observations=320, seed=3, normalize=False)
     split = chronological_windows(series, context_length=20, target_length=5)
@@ -51,6 +62,39 @@ def test_chronological_windows_rejects_empty_axes() -> None:
         ValueError, match="series must have non-empty time and feature axes"
     ):
         chronological_windows(np.empty((0, 4), dtype=np.float64))
+
+
+def test_chronological_windows_rejects_non_integer_window_lengths() -> None:
+    series = make_synthetic_market(observations=320, seed=23, normalize=False)
+
+    with pytest.raises(ValueError, match="context_length must be an integer"):
+        chronological_windows(series, context_length=20.5, target_length=5)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="context_length must be an integer"):
+        chronological_windows(series, context_length=True, target_length=5)
+    with pytest.raises(ValueError, match="target_length must be an integer"):
+        chronological_windows(series, context_length=20, target_length=5.5)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="target_length must be an integer"):
+        chronological_windows(series, context_length=20, target_length=False)
+
+
+def test_chronological_windows_rejects_invalid_train_fraction_types() -> None:
+    series = make_synthetic_market(observations=320, seed=29, normalize=False)
+    invalid_values: tuple[object, ...] = (True, "0.7", np.nan, np.inf, -np.inf)
+
+    for invalid in invalid_values:
+        with pytest.raises(
+            ValueError,
+            match=r"train_fraction must be a finite number in \[0\.5, 0\.9\)",
+        ):
+            chronological_windows(series, train_fraction=invalid)  # type: ignore[arg-type]
+
+
+def test_chronological_windows_rejects_insufficient_split_before_statistics() -> None:
+    series = np.ones((40, 4), dtype=np.float64)
+    with pytest.raises(
+        ValueError, match="not enough observations for disjoint chronological windows"
+    ):
+        chronological_windows(series, context_length=20, target_length=5)
 
 
 def test_validation_changes_cannot_change_normalized_training_values() -> None:
