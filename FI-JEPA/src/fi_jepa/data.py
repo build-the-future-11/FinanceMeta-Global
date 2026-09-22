@@ -20,6 +20,15 @@ class WindowedSplit:
     split_index: int
 
 
+def _require_integer(name: str, value: object, *, minimum: int) -> int:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)):
+        raise ValueError(f"{name} must be an integer")
+    integer = int(value)
+    if integer < minimum:
+        raise ValueError(f"{name} must be at least {minimum}")
+    return integer
+
+
 def make_synthetic_market(
     *,
     observations: int = 640,
@@ -33,10 +42,8 @@ def make_synthetic_market(
     leakage-safe pipelines can request the raw generated scale and then fit any
     normalization only after the chronological train boundary is fixed.
     """
-    if observations < 80:
-        raise ValueError("observations must be at least 80")
-    if features < 2:
-        raise ValueError("features must be at least 2")
+    observations = _require_integer("observations", observations, minimum=80)
+    features = _require_integer("features", features, minimum=2)
 
     rng = np.random.default_rng(seed)
     series = np.zeros((observations, features), dtype=np.float64)
@@ -75,20 +82,30 @@ def chronological_windows(
         raise ValueError("series must have non-empty time and feature axes")
     if not np.isfinite(values).all():
         raise ValueError("series must contain only finite values")
-    if context_length < 2 or target_length < 1:
-        raise ValueError("invalid window lengths")
-    if not 0.5 <= train_fraction < 0.9:
-        raise ValueError("train_fraction must be in [0.5, 0.9)")
+
+    context_length = _require_integer("context_length", context_length, minimum=2)
+    target_length = _require_integer("target_length", target_length, minimum=1)
+
+    if isinstance(train_fraction, (bool, np.bool_)) or not isinstance(
+        train_fraction, (int, float, np.integer, np.floating)
+    ):
+        raise ValueError("train_fraction must be a finite number in [0.5, 0.9)")
+    train_fraction = float(train_fraction)
+    if not np.isfinite(train_fraction) or not 0.5 <= train_fraction < 0.9:
+        raise ValueError("train_fraction must be a finite number in [0.5, 0.9)")
 
     total = values.shape[0]
     split_index = int(total * train_fraction)
+    window_span = context_length + target_length
+    if split_index < window_span or total - split_index < window_span:
+        raise ValueError("not enough observations for disjoint chronological windows")
 
     train_reference = values[:split_index]
     means = train_reference.mean(axis=0, keepdims=True)
     scales = train_reference.std(axis=0, keepdims=True)
     normalized = (values - means) / np.where(scales < 1e-12, 1.0, scales)
 
-    starts = np.arange(0, total - context_length - target_length + 1, dtype=np.int64)
+    starts = np.arange(0, total - window_span + 1, dtype=np.int64)
     context_end = starts + context_length
     target_end = context_end + target_length
 
