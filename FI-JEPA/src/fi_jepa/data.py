@@ -44,6 +44,10 @@ def make_synthetic_market(
     """
     observations = _require_integer("observations", observations, minimum=80)
     features = _require_integer("features", features, minimum=2)
+    seed = _require_integer("seed", seed, minimum=0)
+    if not isinstance(normalize, (bool, np.bool_)):
+        raise ValueError("normalize must be a boolean")
+    normalize = bool(normalize)
 
     rng = np.random.default_rng(seed)
     series = np.zeros((observations, features), dtype=np.float64)
