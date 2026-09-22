@@ -15,6 +15,15 @@ class ProbeMetrics:
     persistence_mse: float
 
 
+def _require_positive_integer(name: str, value: object) -> int:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)):
+        raise ValueError(f"{name} must be a positive integer")
+    integer = int(value)
+    if integer < 1:
+        raise ValueError(f"{name} must be a positive integer")
+    return integer
+
+
 class FIJEPA:
     """Small NumPy JEPA baseline for chronological multivariate windows."""
 
@@ -61,8 +70,7 @@ class FIJEPA:
         return float(np.mean(np.square(predicted - encoded_target)))
 
     def fit(self, contexts: FloatArray, targets: FloatArray, *, epochs: int = 40) -> list[float]:
-        if epochs < 1:
-            raise ValueError("epochs must be positive")
+        epochs = _require_positive_integer("epochs", epochs)
         x = np.asarray(contexts, dtype=np.float64)
         y = self._validate_targets(targets)
         if x.ndim != 3 or x.shape[0] != y.shape[0]:
@@ -115,8 +123,13 @@ def fit_ridge_probe(
     ridge: float = 1e-2,
 ) -> ProbeMetrics:
     """Fit a frozen linear probe for mean next-window return of feature zero."""
-    if ridge <= 0:
-        raise ValueError("ridge must be positive")
+    if isinstance(ridge, (bool, np.bool_)) or not isinstance(
+        ridge, (int, float, np.integer, np.floating)
+    ):
+        raise ValueError("ridge must be a finite positive number")
+    ridge = float(ridge)
+    if not np.isfinite(ridge) or ridge <= 0:
+        raise ValueError("ridge must be a finite positive number")
 
     train_x = model.encode(train_context)
     validation_x = model.encode(validation_context)
