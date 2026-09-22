@@ -21,9 +21,18 @@ class WindowedSplit:
 
 
 def make_synthetic_market(
-    *, observations: int = 640, features: int = 6, seed: int = 7
+    *,
+    observations: int = 640,
+    features: int = 6,
+    seed: int = 7,
+    normalize: bool = True,
 ) -> FloatArray:
-    """Create a deterministic, regime-switching raw return panel for smoke experiments."""
+    """Create a deterministic regime-switching panel.
+
+    The historical public behavior remains normalized by default. Internal
+    leakage-safe pipelines can request the raw generated scale and then fit any
+    normalization only after the chronological train boundary is fixed.
+    """
     if observations < 80:
         raise ValueError("observations must be at least 80")
     if features < 2:
@@ -43,7 +52,12 @@ def make_synthetic_market(
         noise = rng.normal(0.0, idiosyncratic_scale)
         series[t] = autoregressive + cross_section + noise
 
-    return series
+    if not normalize:
+        return series
+
+    means = series.mean(axis=0, keepdims=True)
+    scales = series.std(axis=0, keepdims=True)
+    return (series - means) / np.where(scales < 1e-12, 1.0, scales)
 
 
 def chronological_windows(
