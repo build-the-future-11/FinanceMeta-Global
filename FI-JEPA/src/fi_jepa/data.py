@@ -105,9 +105,16 @@ def chronological_windows(
         raise ValueError("not enough observations for disjoint chronological windows")
 
     train_reference = values[:split_index]
-    means = train_reference.mean(axis=0, keepdims=True)
-    scales = train_reference.std(axis=0, keepdims=True)
-    normalized = (values - means) / np.where(scales < 1e-12, 1.0, scales)
+    with np.errstate(over="ignore", invalid="ignore"):
+        means = train_reference.mean(axis=0, keepdims=True)
+        scales = train_reference.std(axis=0, keepdims=True)
+    if not np.isfinite(means).all() or not np.isfinite(scales).all():
+        raise ValueError("training normalization statistics must be finite")
+
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        normalized = (values - means) / np.where(scales < 1e-12, 1.0, scales)
+    if not np.isfinite(normalized).all():
+        raise ValueError("normalized series must contain only finite values")
 
     starts = np.arange(0, total - window_span + 1, dtype=np.int64)
     context_end = starts + context_length
