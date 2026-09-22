@@ -7,17 +7,22 @@ from fi_jepa.data import chronological_windows, make_synthetic_market
 from fi_jepa.model import FIJEPA, fit_ridge_probe
 
 
-def test_synthetic_market_is_deterministic() -> None:
+def test_synthetic_market_is_deterministic_and_preserves_default_scale_contract() -> None:
     first = make_synthetic_market(seed=11)
     second = make_synthetic_market(seed=11)
     different = make_synthetic_market(seed=12)
+    raw = make_synthetic_market(seed=11, normalize=False)
+
     np.testing.assert_allclose(first, second)
     assert not np.allclose(first, different)
+    assert not np.allclose(first, raw)
     assert np.isfinite(first).all()
+    np.testing.assert_allclose(first.mean(axis=0), 0.0, atol=1e-12)
+    np.testing.assert_allclose(first.std(axis=0), 1.0, atol=1e-12)
 
 
 def test_chronological_split_has_no_shared_observations() -> None:
-    series = make_synthetic_market(observations=320, seed=3)
+    series = make_synthetic_market(observations=320, seed=3, normalize=False)
     split = chronological_windows(series, context_length=20, target_length=5)
     train_last_observation = int(split.train_indices.max() + 20 + 5 - 1)
     validation_first_observation = int(split.validation_indices.min())
@@ -27,7 +32,7 @@ def test_chronological_split_has_no_shared_observations() -> None:
 
 
 def test_validation_changes_cannot_change_normalized_training_values() -> None:
-    series = make_synthetic_market(observations=320, seed=13)
+    series = make_synthetic_market(observations=320, seed=13, normalize=False)
     split = chronological_windows(series, context_length=20, target_length=5)
 
     perturbed = series.copy()
@@ -44,7 +49,7 @@ def test_validation_changes_cannot_change_normalized_training_values() -> None:
 
 
 def test_validation_uses_training_fitted_normalization() -> None:
-    series = make_synthetic_market(observations=320, seed=17)
+    series = make_synthetic_market(observations=320, seed=17, normalize=False)
     split = chronological_windows(series, context_length=20, target_length=5)
 
     train_reference = series[: split.split_index]
@@ -66,7 +71,7 @@ def test_validation_uses_training_fitted_normalization() -> None:
 
 
 def test_jepa_optimization_reduces_training_objective() -> None:
-    series = make_synthetic_market(observations=360, seed=5)
+    series = make_synthetic_market(observations=360, seed=5, normalize=False)
     split = chronological_windows(series, context_length=18, target_length=4)
     model = FIJEPA(features=series.shape[1], target_length=4, seed=5)
     losses = model.fit(split.train_context, split.train_target, epochs=80)
@@ -78,7 +83,7 @@ def test_jepa_optimization_reduces_training_objective() -> None:
 
 
 def test_probe_and_cli_report_finite_metrics() -> None:
-    series = make_synthetic_market(observations=360, seed=9)
+    series = make_synthetic_market(observations=360, seed=9, normalize=False)
     split = chronological_windows(series, context_length=18, target_length=4)
     model = FIJEPA(features=series.shape[1], target_length=4, seed=9)
     model.fit(split.train_context, split.train_target, epochs=30)
