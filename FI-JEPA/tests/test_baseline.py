@@ -33,6 +33,19 @@ def test_synthetic_market_rejects_non_integer_dimensions() -> None:
         make_synthetic_market(features=False)
 
 
+def test_synthetic_market_rejects_invalid_seed_and_normalize_controls() -> None:
+    with pytest.raises(ValueError, match="seed must be an integer"):
+        make_synthetic_market(seed=1.5)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="seed must be an integer"):
+        make_synthetic_market(seed=True)
+    with pytest.raises(ValueError, match="seed must be at least 0"):
+        make_synthetic_market(seed=-1)
+    with pytest.raises(ValueError, match="normalize must be a boolean"):
+        make_synthetic_market(normalize="false")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="normalize must be a boolean"):
+        make_synthetic_market(normalize=1)  # type: ignore[arg-type]
+
+
 def test_chronological_split_has_no_shared_observations() -> None:
     series = make_synthetic_market(observations=320, seed=3, normalize=False)
     split = chronological_windows(series, context_length=20, target_length=5)
