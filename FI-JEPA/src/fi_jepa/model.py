@@ -44,6 +44,12 @@ def _require_finite_number(name: str, value: object) -> float:
     return number
 
 
+def _require_finite_result(name: str, values: FloatArray) -> FloatArray:
+    if not np.all(np.isfinite(values)):
+        raise ValueError(f"{name} produced non-finite values")
+    return values
+
+
 class FIJEPA:
     """Small NumPy JEPA baseline for chronological multivariate windows."""
 
@@ -98,16 +104,26 @@ class FIJEPA:
 
     def encode(self, contexts: FloatArray) -> FloatArray:
         values = self._validate_contexts(contexts)
-        return values.mean(axis=1) @ self.context_encoder
+        with np.errstate(over="ignore", invalid="ignore"):
+            encoded = values.mean(axis=1) @ self.context_encoder
+        return _require_finite_result("context encoding", encoded)
 
     def loss(self, contexts: FloatArray, targets: FloatArray) -> float:
         context_values = self._validate_contexts(contexts)
         target_values = self._validate_targets(targets)
         if context_values.shape[0] != target_values.shape[0]:
             raise ValueError("context and target batches must align")
-        predicted = context_values.mean(axis=1) @ self.context_encoder @ self.predictor
-        encoded_target = (target_values @ self.target_encoder).reshape(predicted.shape)
-        return float(np.mean(np.square(predicted - encoded_target)))
+        with np.errstate(over="ignore", invalid="ignore"):
+            context_embedding = context_values.mean(axis=1) @ self.context_encoder
+            predicted = context_embedding @ self.predictor
+            encoded_target = (target_values @ self.target_encoder).reshape(predicted.shape)
+            error = predicted - encoded_target
+            loss_value = float(np.mean(np.square(error)))
+        _require_finite_result("loss prediction", predicted)
+        _require_finite_result("loss target encoding", encoded_target)
+        if not np.isfinite(loss_value):
+            raise ValueError("loss computation produced non-finite values")
+        return loss_value
 
     def fit(self, contexts: FloatArray, targets: FloatArray, *, epochs: int = 40) -> list[float]:
         epochs = _require_positive_integer("epochs", epochs)
@@ -116,29 +132,52 @@ class FIJEPA:
         if x.shape[0] != y.shape[0]:
             raise ValueError("context and target batches must align")
 
-        mean_context = x.mean(axis=1)
+        with np.errstate(over="ignore", invalid="ignore"):
+            mean_context = x.mean(axis=1)
+        _require_finite_result("training context mean", mean_context)
         history: list[float] = []
 
         for _ in range(epochs):
-            context_embedding = mean_context @ self.context_encoder
-            target_embedding = (y @ self.target_encoder).reshape(x.shape[0], -1)
-            prediction = context_embedding @ self.predictor
-            error = prediction - target_embedding
-            history.append(float(np.mean(np.square(error))))
+            with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+                context_embedding = mean_context @ self.context_encoder
+                target_embedding = (y @ self.target_encoder).reshape(x.shape[0], -1)
+                prediction = context_embedding @ self.predictor
+                error = prediction - target_embedding
+                loss_value = float(np.mean(np.square(error)))
 
-            grad_prediction = (2.0 / error.size) * error
-            grad_predictor = context_embedding.T @ grad_prediction
-            grad_context_embedding = grad_prediction @ self.predictor.T
-            grad_context_encoder = mean_context.T @ grad_context_embedding
+                grad_prediction = (2.0 / error.size) * error
+                grad_predictor = context_embedding.T @ grad_prediction
+                grad_context_embedding = grad_prediction @ self.predictor.T
+                grad_context_encoder = mean_context.T @ grad_context_embedding
 
-            predictor_norm = max(1.0, float(np.linalg.norm(grad_predictor)) / 5.0)
-            encoder_norm = max(1.0, float(np.linalg.norm(grad_context_encoder)) / 5.0)
-            self.predictor -= self.learning_rate * grad_predictor / predictor_norm
-            self.context_encoder -= self.learning_rate * grad_context_encoder / encoder_norm
+            _require_finite_result("training context embedding", context_embedding)
+            _require_finite_result("training target embedding", target_embedding)
+            _require_finite_result("training prediction", prediction)
+            _require_finite_result("training predictor gradient", grad_predictor)
+            _require_finite_result("training encoder gradient", grad_context_encoder)
+            if not np.isfinite(loss_value):
+                raise ValueError("training loss produced non-finite values")
+            history.append(loss_value)
+
+            with np.errstate(over="ignore", invalid="ignore"):
+                predictor_norm = float(np.linalg.norm(grad_predictor))
+                encoder_norm = float(np.linalg.norm(grad_context_encoder))
+            if not np.isfinite(predictor_norm) or not np.isfinite(encoder_norm):
+                raise ValueError("training gradient norm produced non-finite values")
+
+            predictor_scale = max(1.0, predictor_norm / 5.0)
+            encoder_scale = max(1.0, encoder_norm / 5.0)
+            self.predictor -= self.learning_rate * grad_predictor / predictor_scale
+            self.context_encoder -= (
+                self.learning_rate * grad_context_encoder / encoder_scale
+            )
             self.target_encoder = (
                 self.ema_momentum * self.target_encoder
                 + (1.0 - self.ema_momentum) * self.context_encoder
             )
+            _require_finite_result("predictor update", self.predictor)
+            _require_finite_result("context encoder update", self.context_encoder)
+            _require_finite_result("target encoder update", self.target_encoder)
 
         return history
 
