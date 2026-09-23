@@ -71,10 +71,12 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
         self.assertIn("find FI-JEPA/src FI-JEPA/tests", text)
         self.assertIn("xargs -0 sha256sum", text)
 
-    def test_fi_jepa_runtime_and_test_dependencies_are_version_locked(self) -> None:
+    def test_fi_jepa_runtime_test_and_build_dependencies_are_version_locked(self) -> None:
         workflow = self._read("fi-jepa-ci.yml")
         lock_path = ROOT / "FI-JEPA" / "requirements.lock.txt"
+        pyproject_path = ROOT / "FI-JEPA" / "pyproject.toml"
         self.assertTrue(lock_path.is_file(), f"missing dependency lock: {lock_path}")
+        self.assertTrue(pyproject_path.is_file(), f"missing package metadata: {pyproject_path}")
 
         observed: dict[str, str] = {}
         for raw_line in lock_path.read_text(encoding="utf-8").splitlines():
@@ -98,24 +100,35 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
                 "pluggy": "1.6.0",
                 "pygments": "2.21.0",
                 "pytest": "8.4.2",
+                "setuptools": "80.9.0",
             },
         )
+        pyproject = pyproject_path.read_text(encoding="utf-8")
+        self.assertIn('requires = ["setuptools==80.9.0"]', pyproject)
+        self.assertNotIn('requires = ["setuptools>=', pyproject)
         self.assertIn(
             "python -m pip install --no-deps -r FI-JEPA/requirements.lock.txt",
             workflow,
         )
-        self.assertIn("python -m pip install -e FI-JEPA --no-deps", workflow)
+        self.assertIn(
+            "python -m pip install -e FI-JEPA --no-deps --no-build-isolation",
+            workflow,
+        )
         self.assertNotIn("pip install -e 'FI-JEPA[dev]'", workflow)
 
-    def test_fi_jepa_python_and_pip_toolchain_are_exact_patch_locked(self) -> None:
+    def test_fi_jepa_python_pip_and_build_backend_are_exact_locked(self) -> None:
         workflow = self._read("fi-jepa-ci.yml")
         self.assertIn("PYTHON_VERSION: '3.12.14'", workflow)
         self.assertIn("PIP_VERSION: '26.2.1'", workflow)
+        self.assertIn("SETUPTOOLS_VERSION: '80.9.0'", workflow)
         self.assertIn("python-version: ${{ env.PYTHON_VERSION }}", workflow)
         self.assertIn("Verify exact Python and pip toolchain", workflow)
+        self.assertIn("Verify exact build backend", workflow)
         self.assertIn("platform.python_version()", workflow)
+        self.assertIn("importlib.metadata.version('setuptools')", workflow)
         self.assertIn("expected_python_version=%s", workflow)
         self.assertIn("expected_pip_version=%s", workflow)
+        self.assertIn("expected_setuptools_version=%s", workflow)
         self.assertNotIn("python-version: '3.12'", workflow)
 
 
