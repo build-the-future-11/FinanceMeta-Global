@@ -18,15 +18,24 @@ concurrency:
   group: fi-jepa-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ env.SOURCE_SHA }}
           persist-credentials: false
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.12'
@@ -46,8 +55,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf 'source_commit=%s\n' '${{ github.event.pull_request.head.sha || github.sha }}' > fi-jepa-environment.txt
-          printf 'workflow_commit=%s\n' "$GITHUB_SHA" >> fi-jepa-environment.txt
+          printf 'source_commit=%s\n' "${SOURCE_SHA}" > fi-jepa-environment.txt
+          printf 'event_commit=%s\n' "${GITHUB_SHA}" >> fi-jepa-environment.txt
+          printf 'workflow_commit=%s\n' "${GITHUB_WORKFLOW_SHA}" >> fi-jepa-environment.txt
+          printf 'workflow_ref=%s\n' "${GITHUB_WORKFLOW_REF}" >> fi-jepa-environment.txt
           python --version >> fi-jepa-environment.txt
           python -m pip --version >> fi-jepa-environment.txt
           python -m pip freeze --all >> fi-jepa-environment.txt
@@ -59,10 +70,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sha256sum FI-JEPA/pyproject.toml fi-jepa-report.json >> fi-jepa-environment.txt
+          sha256sum \
+            .github/workflows/fi-jepa-ci.yml \
+            FI-JEPA/pyproject.toml \
+            fi-jepa-report.json >> fi-jepa-environment.txt
+          find FI-JEPA/src FI-JEPA/tests -type f -name '*.py' -print0 \
+            | sort -z \
+            | xargs -0 sha256sum >> fi-jepa-environment.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: fi-jepa-synthetic-report-${{ github.event.pull_request.head.sha || github.sha }}
+          name: fi-jepa-synthetic-report-${{ env.SOURCE_SHA }}
           path: |
             fi-jepa-report.json
             fi-jepa-environment.txt
