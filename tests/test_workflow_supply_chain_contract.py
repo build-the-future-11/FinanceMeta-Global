@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 ENGINEERING_WORKFLOWS = (
+    "fi-jepa-ci.yml",
     "five-foundations-resource.yml",
     "fmp-buildathon-contract.yml",
     "nov1-stock-pitch-position.yml",
@@ -57,6 +58,17 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
                 self.assertIn("persist-credentials: false", text)
                 self.assertIn("git rev-parse HEAD", text)
                 self.assertIn('"${SOURCE_SHA}"', text)
+
+    def test_fi_jepa_evidence_binds_workflow_and_source_provenance(self) -> None:
+        text = self._read("fi-jepa-ci.yml")
+        self.assertIn("GITHUB_WORKFLOW_SHA", text)
+        self.assertIn("GITHUB_WORKFLOW_REF", text)
+        self.assertIn("event_commit=%s", text)
+        self.assertIn("workflow_commit=%s", text)
+        self.assertIn("workflow_ref=%s", text)
+        self.assertIn(".github/workflows/fi-jepa-ci.yml", text)
+        self.assertIn("find FI-JEPA/src FI-JEPA/tests", text)
+        self.assertIn("xargs -0 sha256sum", text)
 
 
 if __name__ == "__main__":
