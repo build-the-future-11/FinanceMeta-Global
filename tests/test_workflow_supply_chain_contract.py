@@ -67,8 +67,45 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
         self.assertIn("workflow_commit=%s", text)
         self.assertIn("workflow_ref=%s", text)
         self.assertIn(".github/workflows/fi-jepa-ci.yml", text)
+        self.assertIn("FI-JEPA/requirements.lock.txt", text)
         self.assertIn("find FI-JEPA/src FI-JEPA/tests", text)
         self.assertIn("xargs -0 sha256sum", text)
+
+    def test_fi_jepa_runtime_and_test_dependencies_are_version_locked(self) -> None:
+        workflow = self._read("fi-jepa-ci.yml")
+        lock_path = ROOT / "FI-JEPA" / "requirements.lock.txt"
+        self.assertTrue(lock_path.is_file(), f"missing dependency lock: {lock_path}")
+
+        observed: dict[str, str] = {}
+        for raw_line in lock_path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            self.assertRegex(
+                line,
+                r"^[A-Za-z0-9_.-]+==[A-Za-z0-9_.+!-]+$",
+                f"dependency lock entry must use an exact version: {line}",
+            )
+            name, version = line.split("==", 1)
+            observed[name.lower()] = version
+
+        self.assertEqual(
+            observed,
+            {
+                "iniconfig": "2.3.0",
+                "numpy": "2.5.3",
+                "packaging": "26.3",
+                "pluggy": "1.6.0",
+                "pygments": "2.21.0",
+                "pytest": "8.4.2",
+            },
+        )
+        self.assertIn(
+            "python -m pip install --no-deps -r FI-JEPA/requirements.lock.txt",
+            workflow,
+        )
+        self.assertIn("python -m pip install -e FI-JEPA --no-deps", workflow)
+        self.assertNotIn("pip install -e 'FI-JEPA[dev]'", workflow)
 
 
 if __name__ == "__main__":
