@@ -107,6 +107,17 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
         self.assertIn("python -m pip install -e FI-JEPA --no-deps", workflow)
         self.assertNotIn("pip install -e 'FI-JEPA[dev]'", workflow)
 
+    def test_fi_jepa_python_and_pip_toolchain_are_exact_patch_locked(self) -> None:
+        workflow = self._read("fi-jepa-ci.yml")
+        self.assertIn("PYTHON_VERSION: '3.12.14'", workflow)
+        self.assertIn("PIP_VERSION: '26.2.1'", workflow)
+        self.assertIn("python-version: ${{ env.PYTHON_VERSION }}", workflow)
+        self.assertIn("Verify exact Python and pip toolchain", workflow)
+        self.assertIn("platform.python_version()", workflow)
+        self.assertIn("expected_python_version=%s", workflow)
+        self.assertIn("expected_pip_version=%s", workflow)
+        self.assertNotIn("python-version: '3.12'", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
