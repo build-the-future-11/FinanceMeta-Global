@@ -114,3 +114,50 @@ def test_probe_rejects_non_finite_or_non_numeric_ridge_controls() -> None:
                 targets,
                 ridge=invalid,  # type: ignore[arg-type]
             )
+
+
+def test_probe_rejects_target_mean_overflow() -> None:
+    model = FIJEPA(features=2, target_length=2, embedding_dim=2, seed=7)
+    contexts = np.zeros((2, 1, 2), dtype=np.float64)
+    targets = np.full((2, 2, 2), np.finfo(np.float64).max, dtype=np.float64)
+
+    with pytest.raises(ValueError, match="ridge-probe training target mean produced non-finite values"):
+        fit_ridge_probe(model, contexts, targets, contexts, targets)
+
+
+def test_probe_rejects_normal_equation_overflow() -> None:
+    model = FIJEPA(features=2, target_length=1, embedding_dim=2, seed=7)
+    model.context_encoder = np.eye(2, dtype=np.float64)
+    model.target_encoder = np.eye(2, dtype=np.float64)
+    extreme = 2.0 * np.sqrt(np.finfo(np.float64).max)
+    train_contexts = np.full((2, 1, 2), extreme, dtype=np.float64)
+    validation_contexts = np.zeros((2, 1, 2), dtype=np.float64)
+    targets = np.zeros((2, 1, 2), dtype=np.float64)
+
+    with pytest.raises(ValueError, match="ridge-probe normal matrix produced non-finite values"):
+        fit_ridge_probe(
+            model,
+            train_contexts,
+            targets,
+            validation_contexts,
+            targets,
+        )
+
+
+def test_probe_rejects_metric_overflow() -> None:
+    model = FIJEPA(features=2, target_length=1, embedding_dim=2, seed=7)
+    model.context_encoder = np.eye(2, dtype=np.float64)
+    model.target_encoder = np.eye(2, dtype=np.float64)
+    contexts = np.zeros((2, 1, 2), dtype=np.float64)
+    train_targets = np.zeros((2, 1, 2), dtype=np.float64)
+    validation_targets = np.zeros((2, 1, 2), dtype=np.float64)
+    validation_targets[:, 0, 0] = np.finfo(np.float64).max
+
+    with pytest.raises(ValueError, match="ridge-probe prediction squared error produced non-finite values"):
+        fit_ridge_probe(
+            model,
+            contexts,
+            train_targets,
+            contexts,
+            validation_targets,
+        )
