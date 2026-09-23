@@ -225,19 +225,44 @@ def fit_ridge_probe(
 
     train_x = model.encode(train_context_values)
     validation_x = model.encode(validation_context_values)
-    train_y = train_target_values[:, :, 0].mean(axis=1)
-    validation_y = validation_target_values[:, :, 0].mean(axis=1)
+    with np.errstate(over="ignore", invalid="ignore"):
+        train_y = train_target_values[:, :, 0].mean(axis=1)
+        validation_y = validation_target_values[:, :, 0].mean(axis=1)
+    _require_finite_result("ridge-probe training target mean", train_y)
+    _require_finite_result("ridge-probe validation target mean", validation_y)
 
     train_design = np.column_stack([np.ones(train_x.shape[0]), train_x])
     validation_design = np.column_stack([np.ones(validation_x.shape[0]), validation_x])
     penalty = ridge * np.eye(train_design.shape[1])
     penalty[0, 0] = 0.0
-    weights = np.linalg.solve(train_design.T @ train_design + penalty, train_design.T @ train_y)
-    predictions = validation_design @ weights
+    with np.errstate(over="ignore", invalid="ignore"):
+        normal_matrix = train_design.T @ train_design + penalty
+        right_hand_side = train_design.T @ train_y
+    _require_finite_result("ridge-probe normal matrix", normal_matrix)
+    _require_finite_result("ridge-probe right-hand side", right_hand_side)
+    try:
+        weights = np.linalg.solve(normal_matrix, right_hand_side)
+    except np.linalg.LinAlgError as exc:
+        raise ValueError("ridge-probe linear system is not solvable") from exc
+    _require_finite_result("ridge-probe weights", weights)
+
+    with np.errstate(over="ignore", invalid="ignore"):
+        predictions = validation_design @ weights
+    _require_finite_result("ridge-probe predictions", predictions)
 
     persistence = validation_context_values[:, -1, 0]
+    with np.errstate(over="ignore", invalid="ignore"):
+        prediction_squared_error = np.square(predictions - validation_y)
+        persistence_squared_error = np.square(persistence - validation_y)
+        mse = float(np.mean(prediction_squared_error))
+        persistence_mse = float(np.mean(persistence_squared_error))
+    _require_finite_result("ridge-probe prediction squared error", prediction_squared_error)
+    _require_finite_result("ridge-probe persistence squared error", persistence_squared_error)
+    if not np.isfinite(mse) or not np.isfinite(persistence_mse):
+        raise ValueError("ridge-probe metrics produced non-finite values")
+
     return ProbeMetrics(
-        mse=float(np.mean(np.square(predictions - validation_y))),
+        mse=mse,
         directional_accuracy=float(np.mean(np.sign(predictions) == np.sign(validation_y))),
-        persistence_mse=float(np.mean(np.square(persistence - validation_y))),
+        persistence_mse=persistence_mse,
     )
