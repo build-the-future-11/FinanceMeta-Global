@@ -11,7 +11,7 @@ FloatArray = NDArray[np.float64]
 @dataclass(frozen=True)
 class ProbeMetrics:
     mse: float
-    directional_accuracy: float
+    above_training_mean_accuracy: float
     persistence_mse: float
 
 
@@ -263,6 +263,6 @@ def fit_ridge_probe(
 
     return ProbeMetrics(
         mse=mse,
-        directional_accuracy=float(np.mean(np.sign(predictions) == np.sign(validation_y))),
+        above_training_mean_accuracy=float(np.mean(np.sign(predictions) == np.sign(validation_y))),
         persistence_mse=persistence_mse,
     )
