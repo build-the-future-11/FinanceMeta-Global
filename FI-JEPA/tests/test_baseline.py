@@ -8,18 +8,20 @@ from fi_jepa.data import chronological_windows, make_synthetic_market
 from fi_jepa.model import FIJEPA, fit_ridge_probe
 
 
-def test_synthetic_market_is_deterministic_and_preserves_default_scale_contract() -> None:
+def test_synthetic_market_is_deterministic_and_defaults_to_raw_scale() -> None:
     first = make_synthetic_market(seed=11)
     second = make_synthetic_market(seed=11)
     different = make_synthetic_market(seed=12)
     raw = make_synthetic_market(seed=11, normalize=False)
+    normalized = make_synthetic_market(seed=11, normalize=True)
 
     np.testing.assert_allclose(first, second)
+    np.testing.assert_allclose(first, raw)
     assert not np.allclose(first, different)
-    assert not np.allclose(first, raw)
+    assert not np.allclose(first, normalized)
     assert np.isfinite(first).all()
-    np.testing.assert_allclose(first.mean(axis=0), 0.0, atol=1e-12)
-    np.testing.assert_allclose(first.std(axis=0), 1.0, atol=1e-12)
+    np.testing.assert_allclose(normalized.mean(axis=0), 0.0, atol=1e-12)
+    np.testing.assert_allclose(normalized.std(axis=0), 1.0, atol=1e-12)
 
 
 def test_synthetic_market_rejects_non_integer_dimensions() -> None:
