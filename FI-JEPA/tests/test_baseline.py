@@ -200,7 +200,7 @@ def test_probe_and_cli_report_finite_metrics() -> None:
     )
     assert metrics.mse >= 0
     assert metrics.persistence_mse >= 0
-    assert 0 <= metrics.directional_accuracy <= 1
+    assert 0 <= metrics.above_training_mean_accuracy <= 1
 
     report = run(seed=9, epochs=8)
     assert report["status"] == "synthetic_baseline_only"
