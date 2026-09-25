@@ -1,6 +1,6 @@
 # FinanceBench v0
 
-FinanceBench is a reusable evidence contract for FinanceMeta financial-ML work. It is designed to make chronology, leakage, baselines, regimes, costs, and claim boundaries reviewable before a result is promoted.
+FinanceBench is a reusable evidence contract for FinanceMeta financial-ML work. It makes chronology, leakage, baselines, regimes, costs, and claim boundaries reviewable without forcing older frozen experiments to add analyses after outcomes are known.
 
 ## Required manifest fields
 
@@ -12,6 +12,7 @@ Each evaluation must provide a JSON manifest with:
 - `chronology.train_end`, `chronology.validation_end`, `chronology.test_end`
 - `chronology.point_in_time_verified`
 - `evaluation.walk_forward`
+- `evaluation.regime_analysis_status`
 - `evaluation.regimes`
 - `evaluation.transaction_cost_bps`
 - `baselines`
@@ -29,10 +30,14 @@ Each evaluation must provide a JSON manifest with:
    `train_end < validation_end < test_end`. Random shuffled splits are not a substitute for temporal evaluation.
 
 3. **Walk-forward evidence**
-   The manifest must state whether a walk-forward protocol is used. If false, the claim boundary must explain why.
+   The manifest must state whether a walk-forward protocol is used.
 
-4. **Regime analysis**
-   Regimes must be declared by rule rather than chosen after viewing model outcomes.
+4. **Regime analysis without hindsight**
+   Set `regime_analysis_status` to:
+   - `PREDECLARED` when regime definitions were fixed before outcome inspection; or
+   - `NOT_EVALUATED` when the frozen study did not include regime analysis.
+
+   If `NOT_EVALUATED`, `regimes` must be empty. Do not retroactively invent regimes merely to satisfy FinanceBench. Simulation/trading claim levels require predeclared regime analysis.
 
 5. **Transaction costs**
    Portfolio/trading claims require an explicit cost-sensitivity grid. A zero-cost result may still be reported, but cannot support a net-performance claim by itself.
@@ -43,7 +48,7 @@ Each evaluation must provide a JSON manifest with:
 7. **Claim separation**
    Forecast accuracy, simulated portfolio performance, paper-trading/live performance, and deployability are separate claim levels.
 
-## Recommended claim levels
+## Claim levels
 
 - `FORECAST_ONLY`: predictive metric only.
 - `SIMULATION_GROSS`: simulated portfolio result before costs.
@@ -53,10 +58,14 @@ Each evaluation must provide a JSON manifest with:
 
 A manifest may declare a lower claim level than the evidence could potentially support. It must not declare a higher one.
 
+## Frozen-study rule
+
+FinanceBench can be applied retrospectively for **packaging/audit only** when a study is already frozen. Missing nonessential analyses must be recorded as not evaluated, not added after outcome inspection. Applying the standard does not authorize new data access, tuning, robustness checks, or result-bearing runs.
+
 ## Example validation
 
 ```bash
 python scripts/validate_financebench_manifest.py evaluation/financebench-v0/example-manifest.json
 ```
 
-The validator checks structure and a small number of fail-closed integrity rules. It does not certify that the underlying data or strategy is scientifically valid; reviewers must verify the source artifacts.
+The validator checks structure and fail-closed integrity rules. It does not certify the underlying data or scientific result; reviewers must verify the retained source artifacts.
