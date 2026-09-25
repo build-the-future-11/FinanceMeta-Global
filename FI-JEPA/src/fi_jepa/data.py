@@ -34,13 +34,14 @@ def make_synthetic_market(
     observations: int = 640,
     features: int = 6,
     seed: int = 7,
-    normalize: bool = True,
+    normalize: bool = False,
 ) -> FloatArray:
     """Create a deterministic regime-switching panel.
 
-    The historical public behavior remains normalized by default. Internal
-    leakage-safe pipelines can request the raw generated scale and then fit any
-    normalization only after the chronological train boundary is fixed.
+    Raw generated scale is the safe default. Any normalization for a
+    chronological research pipeline must be fit only after the training
+    boundary is fixed. Explicit normalize=True is retained only for isolated
+    compatibility checks and must not be used as input to chronological_windows.
     """
     observations = _require_integer("observations", observations, minimum=80)
     features = _require_integer("features", features, minimum=2)
