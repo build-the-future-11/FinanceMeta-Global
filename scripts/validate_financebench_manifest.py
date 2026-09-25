@@ -18,6 +18,7 @@ VALID_CLAIMS = {
     "PAPER_TRADING",
     "LIVE",
 }
+VALID_REGIME_STATUS = {"PREDECLARED", "NOT_EVALUATED"}
 
 
 def fail(message: str) -> None:
@@ -85,7 +86,6 @@ def main() -> None:
     train_end = parse_date(require(chronology, "train_end", "chronology"), "chronology.train_end")
     validation_end = parse_date(require(chronology, "validation_end", "chronology"), "chronology.validation_end")
     test_end = parse_date(require(chronology, "test_end", "chronology"), "chronology.test_end")
-
     if not train_end < validation_end < test_end:
         fail("chronology must satisfy train_end < validation_end < test_end")
 
@@ -96,9 +96,17 @@ def main() -> None:
     if not isinstance(walk_forward, bool):
         fail("evaluation.walk_forward must be boolean")
 
+    regime_status = require(evaluation, "regime_analysis_status", "evaluation")
+    if regime_status not in VALID_REGIME_STATUS:
+        fail(f"evaluation.regime_analysis_status must be one of {sorted(VALID_REGIME_STATUS)}")
+
     regimes = require(evaluation, "regimes", "evaluation")
-    if not isinstance(regimes, list) or not regimes:
-        fail("evaluation.regimes must be a non-empty list")
+    if not isinstance(regimes, list):
+        fail("evaluation.regimes must be a list")
+    if regime_status == "PREDECLARED" and not regimes:
+        fail("PREDECLARED regime analysis requires at least one regime")
+    if regime_status == "NOT_EVALUATED" and regimes:
+        fail("NOT_EVALUATED requires evaluation.regimes=[]; do not add post-outcome regimes")
 
     costs = require(evaluation, "transaction_cost_bps", "evaluation")
     if not isinstance(costs, list) or not costs:
@@ -117,9 +125,12 @@ def main() -> None:
     if claim not in VALID_CLAIMS:
         fail(f"manifest.claim_boundary must be one of {sorted(VALID_CLAIMS)}")
 
-    if claim in {"SIMULATION_NET", "PAPER_TRADING", "LIVE"}:
-        if not any(v > 0 for v in costs):
-            fail(f"{claim} requires at least one positive transaction-cost assumption")
+    if claim in {"SIMULATION_GROSS", "SIMULATION_NET", "PAPER_TRADING", "LIVE"}:
+        if regime_status != "PREDECLARED":
+            fail(f"{claim} requires predeclared regime analysis")
+
+    if claim in {"SIMULATION_NET", "PAPER_TRADING", "LIVE"} and not any(v > 0 for v in costs):
+        fail(f"{claim} requires at least one positive transaction-cost assumption")
 
     if claim in {"PAPER_TRADING", "LIVE"} and not walk_forward:
         fail(f"{claim} requires evaluation.walk_forward=true")
@@ -133,7 +144,7 @@ def main() -> None:
 
     print(
         "FINANCEBENCH VALIDATION: PASS "
-        f"(project={project_id}, claim={claim}, "
+        f"(project={project_id}, claim={claim}, regime_status={regime_status}, "
         f"regimes={len(regimes)}, costs={len(costs)}, baselines={len(baselines)})"
     )
 
