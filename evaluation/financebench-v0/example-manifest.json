@@ -1,0 +1,36 @@
+{
+  "version": "financebench-v0",
+  "project_id": "example-forecast-study",
+  "dataset": {
+    "name": "replace-with-real-dataset",
+    "version": "replace-with-version",
+    "as_of": "2026-09-25"
+  },
+  "chronology": {
+    "train_end": "2022-12-31",
+    "validation_end": "2023-12-31",
+    "test_end": "2025-12-31",
+    "point_in_time_verified": true
+  },
+  "evaluation": {
+    "walk_forward": true,
+    "regimes": [
+      "predeclared-low-volatility",
+      "predeclared-high-volatility"
+    ],
+    "transaction_cost_bps": [0, 5, 10, 25]
+  },
+  "baselines": [
+    "historical-mean",
+    "ridge"
+  ],
+  "metrics": [
+    "mae",
+    "rmse"
+  ],
+  "claim_boundary": "FORECAST_ONLY",
+  "reproduction": {
+    "command": "replace-with-reproduction-command",
+    "source_revision": "replace-with-commit-sha"
+  }
+}
