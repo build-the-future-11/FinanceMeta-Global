@@ -1,0 +1,32 @@
+{
+  "categories": {
+    "duplicate": {
+      "detection_rate": 1.0,
+      "n": 10
+    },
+    "gap": {
+      "detection_rate": 1.0,
+      "n": 10
+    },
+    "negative_volume": {
+      "detection_rate": 1.0,
+      "n": 10
+    },
+    "non_finite": {
+      "detection_rate": 1.0,
+      "n": 10
+    },
+    "ohlc": {
+      "detection_rate": 1.0,
+      "n": 10
+    },
+    "out_of_order": {
+      "detection_rate": 1.0,
+      "n": 10
+    }
+  },
+  "clean_false_positive_rate": 0.0,
+  "deterministic_repeat_rate": 1.0,
+  "release_thresholds_pass": true,
+  "total_fixtures": 70
+}
