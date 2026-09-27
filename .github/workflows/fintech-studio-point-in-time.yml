@@ -1,0 +1,81 @@
+name: FinTech Studio point-in-time integrity
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'FinTech-Studio/point-in-time-integrity-toolkit/**'
+      - '.github/workflows/fintech-studio-point-in-time.yml'
+  pull_request:
+    paths:
+      - 'FinTech-Studio/point-in-time-integrity-toolkit/**'
+      - '.github/workflows/fintech-studio-point-in-time.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fintech-studio-pit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  PYTHON_VERSION: '3.12.14'
+  TOOL_ROOT: FinTech-Studio/point-in-time-integrity-toolkit
+
+jobs:
+  integrity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - name: Verify exact source binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Verify Python toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(python -c 'import platform; print(platform.python_version())')" = "${PYTHON_VERSION}"
+      - name: Compile source, benchmark, and tests
+        run: python -m compileall -q "${TOOL_ROOT}/src" "${TOOL_ROOT}/benchmark" "${TOOL_ROOT}/tests"
+      - name: Run unit suite
+        run: python -m unittest discover -s "${TOOL_ROOT}/tests" -v
+      - name: Reproduce frozen 70-fixture benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/fintech-studio-benchmark"
+          python "${TOOL_ROOT}/benchmark/run.py" "${OUT}" | tee "${RUNNER_TEMP}/fintech-studio-summary.stdout.json"
+          cmp "${OUT}/benchmark_summary.json" "${TOOL_ROOT}/benchmark/evidence/benchmark_summary.json"
+          cp "${OUT}/benchmark_summary.json" "${RUNNER_TEMP}/fintech-studio-benchmark-summary.json"
+      - name: Record evidence digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf 'source_commit=%s\n' "${SOURCE_SHA}"
+            printf 'workflow_commit=%s\n' "${GITHUB_WORKFLOW_SHA}"
+            sha256sum               ".github/workflows/fintech-studio-point-in-time.yml"               "${TOOL_ROOT}/pyproject.toml"               "${TOOL_ROOT}/benchmark/evidence/benchmark_summary.json"               "${RUNNER_TEMP}/fintech-studio-benchmark-summary.json"
+            find "${TOOL_ROOT}/src" "${TOOL_ROOT}/benchmark" "${TOOL_ROOT}/tests" -type f -name '*.py' -print0               | sort -z | xargs -0 sha256sum
+          } > "${RUNNER_TEMP}/fintech-studio-environment.txt"
+      - name: Upload reproducibility evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: fintech-studio-pit-${{ env.SOURCE_SHA }}
+          path: |
+            ${{ runner.temp }}/fintech-studio-benchmark-summary.json
+            ${{ runner.temp }}/fintech-studio-summary.stdout.json
+            ${{ runner.temp }}/fintech-studio-environment.txt
+          if-no-files-found: error
+          retention-days: 14
