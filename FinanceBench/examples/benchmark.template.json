@@ -1,0 +1,56 @@
+{
+  "benchmark_id": "example-project-v0",
+  "title": "Example frozen FinanceMeta benchmark",
+  "task": {
+    "target": "Define target before protected evaluation",
+    "horizon": "Define prediction horizon",
+    "primary_question": "Does the proposed method outperform the frozen baseline under the protected protocol?",
+    "failure_condition": "Primary metric fails the predeclared threshold."
+  },
+  "data": {
+    "source": "REPLACE",
+    "license": "REPLACE",
+    "version": "REPLACE",
+    "hash": "REPLACE",
+    "point_in_time": false,
+    "availability_time_notes": "Document when each observation became knowable.",
+    "universe_notes": "Document membership and survivorship assumptions."
+  },
+  "splits": {
+    "policy": "chronological",
+    "description": "REPLACE",
+    "embargo": "REPLACE",
+    "protected_test_locked": true
+  },
+  "baselines": [
+    {
+      "name": "simple-baseline",
+      "role": "trivial",
+      "frozen_before_test": true,
+      "notes": "REPLACE"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "primary_metric",
+      "primary": true,
+      "uncertainty_method": "REPLACE"
+    }
+  ],
+  "transaction_costs": null,
+  "leakage_controls": [
+    "Fit preprocessing only on allowed training history",
+    "Do not inspect protected outcomes before configuration freeze"
+  ],
+  "reproducibility": {
+    "commit_sha": "REPLACE",
+    "config": "REPLACE",
+    "environment_lock": "REPLACE",
+    "exact_command": "REPLACE",
+    "raw_outputs_retained": false,
+    "artifact_path": "REPLACE"
+  },
+  "result_status": "UNTESTED",
+  "release_decision": "CONTINUE",
+  "claims": []
+}
