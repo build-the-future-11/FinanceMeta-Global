@@ -1,0 +1,66 @@
+name: Research Integrity
+
+on:
+  pull_request:
+    paths:
+      - "FI-JEPA/**"
+      - "FinanceBench/**"
+      - "FinTech-Studio/market_data_integrity_v1/**"
+      - ".github/workflows/research-integrity.yml"
+  push:
+    branches: [main]
+    paths:
+      - "FI-JEPA/**"
+      - "FinanceBench/**"
+      - "FinTech-Studio/market_data_integrity_v1/**"
+      - ".github/workflows/research-integrity.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fi-jepa:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FI-JEPA
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q
+      - run: python -m fi_jepa.cli --epochs 2 > /tmp/fi-jepa-smoke.json
+
+  financebench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python FinanceBench/scripts/validate_contract.py FinanceBench/examples/benchmark.template.json
+      - run: python FinanceBench/scripts/validate_contract.py FinanceBench/pilots/fi-jepa-synthetic.json
+
+  market-data-integrity:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FinTech-Studio/market_data_integrity_v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q
+      - run: financemeta-data-benchmark --output benchmark-output
+      - uses: actions/upload-artifact@v4
+        with:
+          name: market-data-integrity-v1-benchmark
+          path: FinTech-Studio/market_data_integrity_v1/benchmark-output
+          if-no-files-found: error
