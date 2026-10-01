@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "as_of_date": "2026-10-02",
+  "records": [
+    {
+      "id": "FM-AAPL-ROLLING-EXP2",
+      "claim_status": "PRE_RESULT_ONLY",
+      "delivery_state": "PROTOCOL_DELIVERED_REVIEWED",
+      "repository": "vedlad10/financemeta-validation-experiment",
+      "source_commit": "7f5b8c9b74245b6c22745a1deadd8b8961e86902",
+      "frozen_reference_commit": "ec6c0df3772a6c510650bc7f7b0b306a7356cc2d",
+      "preregistration_commit": "9899f447334823886618be033a60b4c08b633ca6",
+      "artifact_blobs": [
+        {"path": "experiment_2/config_experiment_2.json", "blob_sha": "96be43f06e27849b2d10d7d84158f3f99bc5d27b"},
+        {"path": "experiment_2/PROTOCOL.md", "blob_sha": "2f67d155cca96b5f225efd4fd059e66418289e56"},
+        {"path": "experiment_2/PROTOCOL_DIFF.md", "blob_sha": "2a0c8fc8d756afe45c531a122ba0f49bfe917f58"},
+        {"path": "experiment_2/fold_plan.csv", "blob_sha": "d39cf110b261fa0cc9e460e0f401d95d472ff89d"},
+        {"path": "experiment_2/fold_plan_audit.txt", "blob_sha": "26c859125751f56b4b99dbde626904bab28154bf"},
+        {"path": "experiment_2/plan_folds.py", "blob_sha": "64722f66217aa224164392786a0a97cb37091d97"}
+      ],
+      "controls": {
+        "point_in_time_membership_key": "label_date",
+        "feature_availability_declared": true,
+        "train_only_preprocessing_declared": true,
+        "chronological_validation_declared": true,
+        "transaction_cost_bps": 5.0,
+        "transaction_cost_role": "secondary_diagnostic_only",
+        "negative_results_must_be_retained": true,
+        "held_out_access_authorized": false,
+        "outcome_run_authorized": false,
+        "protected_data_downloaded": false
+      },
+      "metrics": {
+        "requested_primary_metrics": ["mae", "oos_r2"],
+        "delivered_primary_metrics": ["oos_r2"],
+        "missing_primary_metrics": ["mae"],
+        "metric_gap_status": "OPEN_MAE_MISSING"
+      },
+      "review": {
+        "methods_review_state": "REVIEWED_PROTOCOL_ONLY",
+        "independent_reviewer_state": "UNASSIGNED",
+        "outcome_authorization_state": "NOT_AUTHORIZED"
+      },
+      "evidence_boundary": "No experiment-2 model fit, protected/2026 download, validation score, lockbox score, or scientific outcome is recorded or authorized by this registry entry."
+    }
+  ]
+}
