@@ -21,3 +21,22 @@ The organization contained these five research repositories plus `org-infra` in 
 Eigen-JEPA artifact `9975833698`, workflow `33988159305`, has SHA256 `5de19317b079570db8a97f9cbd5b01da5c1c06878325e3f42c9c3a78db63f6b4`. The recovered ZIP matched that digest. The full gate verified 20 run-metric files and 72 finite aggregate summaries; the seed-ledger verifier checked paired arithmetic and the Tail-F1 equality invariant. No model was trained or frozen experiment rerun during this recovery.
 
 The PRs are reviewable drafts, not merged releases. New starter scopes are explicit proposals; prototype test passes establish arithmetic and rejection behavior, not research promise, forecasting quality or financial effectiveness. No successor outcome authorization is created by this index.
+
+
+## Exact-head review status — 2 October 2026
+
+The repository links above are not treated as CI evidence by themselves. Current review heads are:
+
+| Repository draft | Exact head | Hosted exact-head checks observed |
+| --- | --- | --- |
+| FI-JEPA #9 | `9f35f3fd727aa83086ebc1cf9264f682d92d199e` | No GitHub Actions run attached to this exact PR head; retain the locally reported 9-pass/1-skip result as local evidence only |
+| Eigen-JEPA #30 | `c3b86ebbc3ce26f21625fea5213cf275fb9a79b4` | CI run 36978269125 **SUCCESS**; Submission claim gate 36978269133 **SUCCESS** |
+| EigenFinance #2 | `b3150dfb0c02560e226b958348684eab012bfca0` | No GitHub Actions run attached to this exact PR head; six fixture passes are local evidence only |
+| Finimmunity #2 | `91f9bc74ddad56db14fa3fc9a221cd6d2c1ae7a4` | No GitHub Actions run attached to this exact PR head; five fixture passes are local evidence only |
+| LGWM #2 | `6704c2cbd92b5b9fd94ef122cf74a4dc3a9ed1b3` | No GitHub Actions run attached to this exact PR head; six fixture passes are local evidence only |
+
+Absence of a hosted run is recorded as an evidence gap, not interpreted as either failure or success.
+
+## Workspace research-governance repair
+
+The Quant Research Cohort 01 contract had historical green evidence but its earlier restack PR was closed unmerged, so those contract artifacts were absent from current `main`. Draft PR #81 restacks the unchanged no-result contract onto current infrastructure. Its exact head `626eedf972c9398815e72b3821ded0010797a5b7` passed both the Workflow supply-chain contract (run 37020149161) and Quant Cohort 01 pre-result contract (run 37020149557). This restores a reviewable contract surface only: `held_out_access_authorized` remains false, the raw-data manifest remains pre-lock at 0/60 archives, and no model/held-out result is created or implied.
