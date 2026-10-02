@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0.0",
+  "status": "prelock_pending_archive_checksum_capture",
+  "dataset_id": "financemeta-qrc01-btcusdt-spot-1h-2020-2024",
+  "source": {
+    "name": "Binance Public Data / Binance Vision",
+    "documentation_repository": "https://github.com/binance/binance-public-data",
+    "base_url": "https://data.binance.vision",
+    "market": "spot",
+    "symbol": "BTCUSDT",
+    "interval": "1h",
+    "format": "monthly ZIP archives containing CSV-form kline rows",
+    "archive_url_template": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-{YYYY}-{MM}.zip",
+    "checksum_url_template": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-{YYYY}-{MM}.zip.CHECKSUM"
+  },
+  "archive_range": {
+    "start_month_inclusive": "2020-01",
+    "end_month_inclusive": "2024-12",
+    "expected_monthly_archive_count": 60
+  },
+  "timestamp_contract": {
+    "timezone": "UTC",
+    "expected_unit": "milliseconds",
+    "allowed_period": "2020-01-01T00:00:00Z through 2024-12-31T23:59:59.999Z",
+    "guard": "Reject any parsed open_time or close_time whose magnitude/unit is inconsistent with milliseconds or whose converted timestamp lies outside the archive month.",
+    "post_2025_data_forbidden": true,
+    "reason": "The official Binance public-data documentation states that spot timestamps from 2025-01-01 onward use microseconds. Cohort 01 intentionally freezes pre-2025 archives to avoid a timestamp-unit regime change in the first benchmark."
+  },
+  "raw_schema": [
+    {"index": 0, "name": "open_time", "type": "int64"},
+    {"index": 1, "name": "open", "type": "float64_positive"},
+    {"index": 2, "name": "high", "type": "float64_positive"},
+    {"index": 3, "name": "low", "type": "float64_positive"},
+    {"index": 4, "name": "close", "type": "float64_positive"},
+    {"index": 5, "name": "volume", "type": "float64_nonnegative"},
+    {"index": 6, "name": "close_time", "type": "int64"},
+    {"index": 7, "name": "quote_asset_volume", "type": "float64_nonnegative"},
+    {"index": 8, "name": "number_of_trades", "type": "int64_nonnegative"},
+    {"index": 9, "name": "taker_buy_base_asset_volume", "type": "float64_nonnegative"},
+    {"index": 10, "name": "taker_buy_quote_asset_volume", "type": "float64_nonnegative"},
+    {"index": 11, "name": "ignore", "type": "ignored_but_retained_in_raw_hash"}
+  ],
+  "validation_gates_before_modeling": [
+    "Fetch all 60 ZIP archives and all 60 official .CHECKSUM files.",
+    "Verify each ZIP against the official checksum before extraction.",
+    "Record the observed archive SHA-256, checksum-file SHA-256, byte size, and retrieval timestamp for every month in data_manifest.lock.json.",
+    "Require strictly increasing unique open_time after concatenation.",
+    "Require high >= max(open, close), low <= min(open, close), high >= low, positive prices, and nonnegative volumes/trade counts.",
+    "Require close_time > open_time for every row.",
+    "Enumerate every deviation from exact 1-hour open_time spacing. Do not forward-fill or synthesize missing bars.",
+    "Fail closed on conflicting duplicate timestamps.",
+    "Compute a SHA-256 over the canonical concatenated raw-row bytes after successful archive verification and record it in data_manifest.lock.json.",
+    "Commit data_manifest.lock.json and data_quality_report.json before any validation/model-selection run; held-out test remains locked until independent reviewer sign-off."
+  ],
+  "split_contract": {
+    "train": "2020-01-01T00:00:00Z <= signal_bar_open_time < 2023-01-01T00:00:00Z",
+    "validation": "2023-01-01T00:00:00Z <= signal_bar_open_time < 2024-01-01T00:00:00Z",
+    "held_out_test": "2024-01-01T00:00:00Z <= signal_bar_open_time < 2025-01-01T00:00:00Z",
+    "split_assignment_key": "signal_bar_open_time",
+    "random_split_forbidden": true
+  },
+  "gap_exclusion_rule": {
+    "max_feature_lookback_hours": 168,
+    "future_bars_required_for_label": 2,
+    "rule": "A sample is eligible only when every hourly bar from t-168 through t+2 required by its frozen features/label exists exactly once. Samples touching a gap or duplicate are excluded before split-level metrics, and counts/reasons are reported without replacement or imputation."
+  },
+  "archive_checksums": [],
+  "lock_fields_required_before_modeling": [
+    "archive_checksums[60]",
+    "canonical_raw_sha256",
+    "row_count_raw",
+    "row_count_after_integrity_gates",
+    "first_open_time_utc",
+    "last_open_time_utc",
+    "gap_count",
+    "duplicate_count",
+    "excluded_sample_count_by_split",
+    "retrieval_utc",
+    "loader_source_commit_sha"
+  ],
+  "mutation_policy": "If Binance later replaces an archived file or checksum, do not update this dataset silently. Create a new dataset_id/version, preserve the old manifest, rerun only under a documented amendment, and do not choose the version based on held-out performance."
+}
