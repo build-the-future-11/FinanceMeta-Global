@@ -75,3 +75,8 @@ Week 1: `experiment_contract.json`, locked data manifest, data-quality report, l
 Final: per-seed, per-regime, cost-sensitivity and placebo tables; primary summary; short report with failure analysis; one-command reproduction path.
 
 Related: #35.
+
+
+## Current-main restoration provenance
+
+This directory was restacked onto current `main` on 2026-10-02 from the verified historical contract head `26e5cfa0e305bc1b01b5edbaeec031f62b85febc` after the earlier contract PRs were closed unmerged. The restoration does not authorize held-out access, download data, run training, or change any scientific choice in the frozen pre-result contract.
