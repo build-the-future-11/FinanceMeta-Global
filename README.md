@@ -10,7 +10,8 @@ This repository is intentionally evidence-first. It should not be read as proof 
 
 ## Current repository contents
 
-- `FI-JEPA/` — current proposal-stage research directory; its status is recorded conservatively in `registry/projects.json`.
+- `FI-JEPA/` — independent executable NumPy synthetic baseline at M1/E1; its status is recorded conservatively in `registry/projects.json`.
+- `RESEARCH_REPOSITORY_INDEX.md` — linked organization research closeouts and draft starters, kept separate from the local baseline and its maturity record.
 - `OPERATING_SYSTEM_2026.md` — operating standard for research, chapters, programs, participant outcomes, partnerships, and evidence reporting.
 - `registry/programs.json` — program launch-gate registry. Entries remain planned until evidence satisfies their gate.
 - `registry/projects.json` — machine-readable project evidence registry and claim boundary.
