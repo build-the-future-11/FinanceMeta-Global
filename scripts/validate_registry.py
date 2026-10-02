@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import re
+from datetime import date
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 PROGRAMS = ROOT / "registry" / "programs.json"
 PROJECTS = ROOT / "registry" / "projects.json"
+OPERATIONS_QUEUE = ROOT / "registry" / "research_operations_queue.json"
 
 EVIDENCE = {f"E{i}" for i in range(6)}
 MATURITY = {f"M{i}" for i in range(6)}
@@ -28,6 +31,7 @@ PROJECT_STATUS = {
     "external_outcome",
     "archived",
 }
+HEX_SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
 def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
@@ -95,15 +99,140 @@ def repository_path(path: str) -> Path:
     return candidate
 
 
+def validate_operations_queue(data: dict) -> list[str]:
+    errors: list[str] = []
+    if data.get("schema_version") != 1:
+        errors.append("research operations queue: schema_version must equal 1")
+
+    last_verified = data.get("last_verified")
+    if not isinstance(last_verified, str) or not last_verified.strip() or last_verified != last_verified.strip():
+        errors.append("research operations queue: last_verified must be a canonical ISO date")
+    else:
+        try:
+            parsed_last_verified = date.fromisoformat(last_verified)
+        except ValueError:
+            errors.append("research operations queue: last_verified must be a canonical ISO date")
+        else:
+            if parsed_last_verified.isoformat() != last_verified:
+                errors.append("research operations queue: last_verified must be a canonical ISO date")
+            elif parsed_last_verified > date.today():
+                errors.append("research operations queue: last_verified must not be in the future")
+
+    claim_boundary = data.get("claim_boundary")
+    if not isinstance(claim_boundary, str) or not claim_boundary.strip() or claim_boundary != claim_boundary.strip():
+        errors.append("research operations queue: claim_boundary must be a canonical non-empty string")
+
+    items = data.get("items")
+    if not isinstance(items, list):
+        errors.append("research operations queue: items must be a list")
+        return errors
+
+    unique_ids(items, "research operations queue items")
+
+    for item in items:
+        item_id = item["id"]
+        for field in ("program", "state", "next_artifact", "blocker", "claim_status"):
+            value = item.get(field)
+            if not isinstance(value, str) or not value.strip() or value != value.strip():
+                errors.append(f"operations item {item_id}: {field} must be a canonical non-empty string")
+
+        for field in ("owner_state", "reviewer_state", "verification_state", "canonical_general_form"):
+            if field in item:
+                value = item[field]
+                if not isinstance(value, str) or not value.strip() or value != value.strip():
+                    errors.append(f"operations item {item_id}: {field} must be a canonical non-empty string")
+
+        held_out_access_authorized = item.get("held_out_access_authorized")
+        if not isinstance(held_out_access_authorized, bool):
+            errors.append(f"operations item {item_id}: held_out_access_authorized must be boolean")
+        elif held_out_access_authorized:
+            errors.append(
+                f"operations item {item_id}: held_out_access_authorized must remain false in this pre-result operations registry"
+            )
+        elif item.get("state") == "HELD_OUT_UNLOCKED":
+            errors.append(
+                f"operations item {item_id}: HELD_OUT_UNLOCKED contradicts held_out_access_authorized=false"
+            )
+
+        for field in ("primary_issue", "pull_request", "current_preresult_contract_pr"):
+            if field in item:
+                value = item[field]
+                if type(value) is not int or value <= 0:
+                    errors.append(f"operations item {item_id}: {field} must be a positive integer")
+
+        if "verified_completed_general_applications" in item:
+            value = item["verified_completed_general_applications"]
+            if type(value) is not int or value < 0:
+                errors.append(
+                    f"operations item {item_id}: verified_completed_general_applications must be a non-negative integer"
+                )
+
+        if "dependencies" in item:
+            dependencies = item["dependencies"]
+            if (
+                not isinstance(dependencies, list)
+                or any(type(value) is not int or value <= 0 for value in dependencies)
+            ):
+                errors.append(f"operations item {item_id}: dependencies must be a list of positive integers")
+            elif len(dependencies) != len(set(dependencies)):
+                errors.append(f"operations item {item_id}: dependencies must not contain duplicates")
+
+        if "exact_head" in item:
+            exact_head = item["exact_head"]
+            if not isinstance(exact_head, str) or not HEX_SHA.fullmatch(exact_head):
+                errors.append(f"operations item {item_id}: exact_head must be a lowercase 40-character Git SHA")
+
+    declared_pull_request_items: dict[int, dict] = {}
+    for item in items:
+        pull_request = item.get("pull_request")
+        if type(pull_request) is not int or pull_request <= 0:
+            continue
+        if pull_request in declared_pull_request_items:
+            errors.append(f"research operations queue: pull_request {pull_request} must be declared by exactly one item")
+            continue
+        declared_pull_request_items[pull_request] = item
+
+    for item in items:
+        contract_pr = item.get("current_preresult_contract_pr")
+        if type(contract_pr) is not int or contract_pr <= 0:
+            continue
+        referenced = declared_pull_request_items.get(contract_pr)
+        if referenced is None:
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference a pull_request declared in this queue"
+            )
+            continue
+        if referenced.get("program") != item.get("program"):
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference a pull_request for the same program"
+            )
+        if referenced.get("held_out_access_authorized") is not False:
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference an explicitly pre-result pull_request"
+            )
+        if referenced.get("claim_status") != "PRE_RESULT_ONLY":
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference a PRE_RESULT_ONLY queue item"
+            )
+        referenced_head = referenced.get("exact_head")
+        if not isinstance(referenced_head, str) or not HEX_SHA.fullmatch(referenced_head):
+            errors.append(
+                f"operations item {item['id']}: current_preresult_contract_pr must reference an exact-head-bound queue item"
+            )
+
+    return errors
+
+
 def main() -> None:
     programs = load(PROGRAMS).get("programs")
     projects = load(PROJECTS).get("projects")
+    operations_data = load(OPERATIONS_QUEUE)
     if not isinstance(programs, list) or not isinstance(projects, list):
         raise SystemExit("registry documents must contain list-valued programs/projects")
 
     unique_ids(programs, "programs")
     unique_ids(projects, "projects")
-    errors: list[str] = []
+    errors: list[str] = validate_operations_queue(operations_data)
 
     for p in programs:
         pid = p["id"]
@@ -175,7 +304,11 @@ def main() -> None:
     if errors:
         raise SystemExit("registry validation failed:\n- " + "\n- ".join(errors))
 
-    print(f"REGISTRY VALIDATION: PASS ({len(programs)} programs, {len(projects)} projects)")
+    operations = operations_data["items"]
+    print(
+        "REGISTRY VALIDATION: PASS "
+        f"({len(programs)} programs, {len(projects)} projects, {len(operations)} operations items)"
+    )
 
 
 if __name__ == "__main__":

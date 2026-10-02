@@ -1,0 +1,74 @@
+name: Chapter activation
+description: Propose a FinanceMeta chapter activation with one evidence-backed 30-day output.
+title: "[Chapter Activation] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A chapter application or member count is not activation. Active status requires a reviewed output with retained evidence.
+  - type: input
+    id: chapter
+    attributes:
+      label: Chapter / school / region
+    validations:
+      required: true
+  - type: input
+    id: lead
+    attributes:
+      label: Chapter lead
+    validations:
+      required: true
+  - type: input
+    id: reviewer
+    attributes:
+      label: Central FinanceMeta liaison/reviewer
+    validations:
+      required: true
+  - type: dropdown
+    id: output_type
+    attributes:
+      label: First 30-day output
+      options:
+        - Reproducibility or research-integrity workshop
+        - Evidence-first research note
+        - Financial-data integrity audit
+        - Bounded FinTech Studio prototype
+        - Independently reviewed educational resource
+        - Other bounded output
+    validations:
+      required: true
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Exact deliverable and definition of done
+      description: State the artifact, audience/user, evidence location, and what a reviewer must be able to verify.
+    validations:
+      required: true
+  - type: input
+    id: due
+    attributes:
+      label: Target review date
+      description: Use an exact date within 30 days.
+    validations:
+      required: true
+  - type: textarea
+    id: claim_boundary
+    attributes:
+      label: Claim boundary
+      description: State what the chapter will not claim from this output.
+    validations:
+      required: true
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Activation rules
+      options:
+        - label: We will not count application, meetings, group-chat membership, or planned events as delivered impact.
+          required: true
+        - label: Research outputs will use FinanceMeta's evidence/reproducibility standards.
+          required: true
+        - label: Financial education content will avoid personalized investment advice and unsupported certainty.
+          required: true
+        - label: Final chapter status will be based on the reviewed artifact and retained evidence.
+          required: true
