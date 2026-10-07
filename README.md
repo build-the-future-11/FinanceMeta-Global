@@ -10,6 +10,7 @@ This repository is intentionally evidence-first. It should not be read as proof 
 
 ## Current repository contents
 
+- `FinTech-Studio/point-in-time-integrity-toolkit/` — [working OHLCV and prediction-ledger audit](FinTech-Studio/point-in-time-integrity-toolkit/README.md), with retained engineering examples and a hash-pinned replay of closed negative FI-JEPA evidence. See its [research note](FinTech-Studio/point-in-time-integrity-toolkit/RESEARCH_NOTE.md) for results and limitations.
 - `FI-JEPA/` — current proposal-stage research directory; its status is recorded conservatively in `registry/projects.json`.
 - `OPERATING_SYSTEM_2026.md` — operating standard for research, chapters, programs, participant outcomes, partnerships, and evidence reporting.
 - `registry/programs.json` — program launch-gate registry. Entries remain planned until evidence satisfies their gate.

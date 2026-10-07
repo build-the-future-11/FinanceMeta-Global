@@ -1,0 +1,50 @@
+{
+  "all_retained_full_mse_worse_than_ridge": true,
+  "audit_status": "PASS",
+  "data_kind": "retained outcomes on statsmodels macrodata; not a trading ledger",
+  "full_and_no_operator_split_mse_identical_all_seeds": true,
+  "limitations": [
+    "Arithmetic/provenance replay of retained evidence; original dataset/model execution is not revalidated.",
+    "The operator-removal condition is non-identifying in this one-stage configuration.",
+    "Three seeds support a bounded descriptive comparison, not a general significance claim.",
+    "FI-JEPA v1 remains closed negative/boundary; this does not authorize or execute a successor.",
+    "No observed trading ledger was supplied and no trading profitability is claimed."
+  ],
+  "mean_full_minus_ridge_mse": 0.4782213469346364,
+  "protocol_id": "FIJEPA_MACRODATA_PAPER_V1_20260909",
+  "reported_bootstrap_95ci_not_recomputed": [
+    0.4199346601963043,
+    0.5621477663516998
+  ],
+  "scientific_state": "CLOSED NEGATIVE / BOUNDARY",
+  "seed_rows": [
+    {
+      "full": 0.8945053219795227,
+      "full_minus_no_operator_split": 0.0,
+      "full_minus_ridge": 0.45258161425590515,
+      "no_operator_split": 0.8945053219795227,
+      "raw_context_ridge": 0.44192370772361755,
+      "seed": 7
+    },
+    {
+      "full": 0.8618583679199219,
+      "full_minus_no_operator_split": 0.0,
+      "full_minus_ridge": 0.4199346601963043,
+      "no_operator_split": 0.8618583679199219,
+      "raw_context_ridge": 0.44192370772361755,
+      "seed": 17
+    },
+    {
+      "full": 1.0040714740753174,
+      "full_minus_no_operator_split": 0.0,
+      "full_minus_ridge": 0.5621477663516998,
+      "no_operator_split": 1.0040714740753174,
+      "raw_context_ridge": 0.44192370772361755,
+      "seed": 27
+    }
+  ],
+  "source_commit": "c94e1616eba1b2a7415ead4695def1d3b93094db",
+  "source_generated_utc": "2026-09-12T16:07:39.201641+00:00",
+  "source_sha256": "525fe5f141bba765b3346c1aca3b327303703e5f98142b0f25d664211e10f7c8",
+  "source_url": "https://github.com/Finance-Meta-Research/FI-JEPA/blob/c94e1616eba1b2a7415ead4695def1d3b93094db/experiments/paper_results.json"
+}

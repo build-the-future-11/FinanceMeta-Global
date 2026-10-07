@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "last_verified": "2026-09-01",
+  "last_verified": "2026-10-07",
   "projects": [
     {
       "id": "FI-JEPA",
@@ -19,6 +19,25 @@
       },
       "claim_boundary": "Executable deterministic synthetic baseline only. This is not evidence of novelty, real-market performance, predictive alpha, profitability, external reproduction, or trading suitability.",
       "next_gate": "Add licensed point-in-time market data with provenance and leakage controls, retain raw machine-readable outputs with seed/config/commit provenance, add stronger baselines, multiple seeds, walk-forward evaluation, ablations, and confidence intervals before any promotion beyond M1/E1."
+    },
+    {
+      "id": "FINANCEMETA-POINT-IN-TIME-INTEGRITY",
+      "path": "FinTech-Studio/point-in-time-integrity-toolkit",
+      "domain": ["software-integrity", "finance"],
+      "maturity": "M2",
+      "evidence_level": "E2",
+      "status": "internal_evidence",
+      "verified_repository_state": {
+        "readme_present": true,
+        "license_present": true,
+        "implementation_present": true,
+        "tests_present": true,
+        "results_present": true,
+        "reproduction_command_present": true
+      },
+      "evidence_record": "FinTech-Studio/point-in-time-integrity-toolkit/RESEARCH_NOTE.md",
+      "claim_boundary": "Executed internal software controls and source-bound replay of retained negative outcomes. All supplied trading ledgers are synthetic arithmetic fixtures; producer availability assertions are not independently certified. No forecasting novelty, realized return, profitability, observed trading validation, external review or adoption is claimed. Canonical FI-JEPA v1 remains closed negative/boundary.",
+      "next_gate": "Independent reproduction and domain review; any new empirical claim requires licensed observed data, independently substantiated availability times, a distinct frozen protocol, fair baselines and complete retained outputs. Do not reopen closed FI-JEPA v1."
     }
   ]
 }
