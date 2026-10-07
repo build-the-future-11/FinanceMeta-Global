@@ -48,9 +48,22 @@ jobs:
           set -euo pipefail
           test "$(python -c 'import platform; print(platform.python_version())')" = "${PYTHON_VERSION}"
       - name: Compile source, benchmark, and tests
-        run: python -m compileall -q "${TOOL_ROOT}/src" "${TOOL_ROOT}/benchmark" "${TOOL_ROOT}/tests"
+        run: python -m compileall -q "${TOOL_ROOT}/src" "${TOOL_ROOT}/benchmark" "${TOOL_ROOT}/tests" "${TOOL_ROOT}/examples"
       - name: Run unit suite
         run: python -m unittest discover -s "${TOOL_ROOT}/tests" -v
+      - name: Verify publication oracle and retained fault enumeration
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAPER_ROOT="${TOOL_ROOT}/publication/raiops4fin2026"
+          python -m unittest discover -s "${PAPER_ROOT}" -p 'test_*.py' -v
+          python "${PAPER_ROOT}/analyze_ledger_controls.py" \
+            --package "${TOOL_ROOT}" \
+            --output "${RUNNER_TEMP}/fintech-publication-ledger"
+          cmp "${RUNNER_TEMP}/fintech-publication-ledger/summary.json" \
+            "${PAPER_ROOT}/evidence/ledger-fault-enumeration-v1/summary.json"
+          cmp "${RUNNER_TEMP}/fintech-publication-ledger/SHA256SUMS.json" \
+            "${PAPER_ROOT}/evidence/ledger-fault-enumeration-v1/SHA256SUMS.json"
       - name: Reproduce frozen 70-fixture benchmark
         shell: bash
         run: |
@@ -59,6 +72,21 @@ jobs:
           python "${TOOL_ROOT}/benchmark/run.py" "${OUT}" | tee "${RUNNER_TEMP}/fintech-studio-summary.stdout.json"
           cmp "${OUT}/benchmark_summary.json" "${TOOL_ROOT}/benchmark/evidence/benchmark_summary.json"
           cp "${OUT}/benchmark_summary.json" "${RUNNER_TEMP}/fintech-studio-benchmark-summary.json"
+      - name: Reproduce ledger arithmetic and future-feature rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "${TOOL_ROOT}/examples/reproduce.py" "${RUNNER_TEMP}/fintech-studio-ledger"
+          cmp "${RUNNER_TEMP}/fintech-studio-ledger/SHA256SUMS.json" "${TOOL_ROOT}/examples/evidence/ledger-v1/SHA256SUMS.json"
+      - name: Replay the pinned retained FI-JEPA comparison without training
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 \
+            'https://raw.githubusercontent.com/Finance-Meta-Research/FI-JEPA/c94e1616eba1b2a7415ead4695def1d3b93094db/experiments/paper_results.json' \
+            --output "${RUNNER_TEMP}/fijepa-paper-results.json"
+          python "${TOOL_ROOT}/examples/audit_retained_fijepa.py" "${RUNNER_TEMP}/fijepa-paper-results.json" --output "${RUNNER_TEMP}/fijepa-retained-audit.json"
+          cmp "${RUNNER_TEMP}/fijepa-retained-audit.json" "${TOOL_ROOT}/examples/evidence/fijepa-v1-retained-audit.json"
       - name: Record evidence digests
         shell: bash
         run: |
@@ -77,5 +105,8 @@ jobs:
             ${{ runner.temp }}/fintech-studio-benchmark-summary.json
             ${{ runner.temp }}/fintech-studio-summary.stdout.json
             ${{ runner.temp }}/fintech-studio-environment.txt
+            ${{ runner.temp }}/fintech-studio-ledger
+            ${{ runner.temp }}/fijepa-retained-audit.json
+            ${{ runner.temp }}/fintech-publication-ledger
           if-no-files-found: error
           retention-days: 14

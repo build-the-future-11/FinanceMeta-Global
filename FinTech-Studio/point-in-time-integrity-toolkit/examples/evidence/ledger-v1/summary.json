@@ -1,0 +1,21 @@
+{
+  "cases": [
+    {
+      "actual": "PASS",
+      "expected": "PASS",
+      "input": "ledger_clean.csv",
+      "metrics_withheld": false,
+      "source_sha256": "309490bd9893c4d49265887eb63a53bc2d19659505e102494dab762c428310ab"
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "input": "ledger_future_feature.csv",
+      "metrics_withheld": true,
+      "source_sha256": "182d5b5f28d15a3add08dbbdc08a5913d230ab372f50163bf570f0300a3fe96c"
+    }
+  ],
+  "claim": "Engineering arithmetic and declared timestamp checks only; no empirical financial result.",
+  "data_kind": "synthetic",
+  "status": "PASS"
+}

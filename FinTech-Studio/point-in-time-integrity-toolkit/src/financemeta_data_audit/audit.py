@@ -2,25 +2,19 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import json
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
 REQUIRED_DEFAULT = ["timestamp", "open", "high", "low", "close", "volume"]
 
 
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def _config_sha256(config: dict[str, Any]) -> str:
-    payload = json.dumps(config, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    payload = json.dumps(config, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
 
@@ -86,7 +80,7 @@ def load_config(path: str | Path) -> dict[str, Any]:
     else:
         raise ValueError("config must be .json, .yaml, or .yml")
     if not isinstance(data, dict):
-        raise ValueError("config root must be a mapping")
+        raise ValueError("config root must be a mapping")  # noqa: TRY004 - malformed serialized configuration
     return data
 
 
@@ -104,44 +98,62 @@ def _check(check_id: str, status: str, count: int = 0, examples: list[Any] | Non
 
 def _parse_timestamp(raw: str, fmt: str | None) -> datetime:
     if fmt:
-        return datetime.strptime(raw, fmt)
-    value = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
-    dt = datetime.fromisoformat(value)
+        dt = datetime.strptime(raw, fmt)  # noqa: DTZ007 - offsets preserved; naive input is explicitly normalized below
+    else:
+        value = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+        dt = datetime.fromisoformat(value)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(config, dict):
+        raise ValueError("config root must be a mapping")  # noqa: TRY004 - configuration-validation error
     source = Path(csv_path)
     if not source.is_file():
         raise FileNotFoundError(source)
 
+    # Snapshot config and input once: report hashes describe exactly the bytes
+    # and configuration inspected, even if the caller later edits either.
+    config = json.loads(json.dumps(config, allow_nan=False))
     required = config.get("required_columns", REQUIRED_DEFAULT)
-    if not isinstance(required, list) or not all(isinstance(x, str) for x in required):
-        raise ValueError("required_columns must be a list of strings")
+    if (not isinstance(required, list) or not required
+            or not all(isinstance(x, str) and x.strip() for x in required)
+            or len(set(required)) != len(required)):
+        raise ValueError("required_columns must be a non-empty list of unique column names")
 
     ts_col = str(config.get("timestamp_column", "timestamp"))
     expected_interval = config.get("expected_interval_seconds")
     if expected_interval is not None:
+        if isinstance(expected_interval, bool):
+            raise ValueError("expected_interval_seconds must be finite and > 0")
         expected_interval = float(expected_interval)
-        if expected_interval <= 0:
-            raise ValueError("expected_interval_seconds must be > 0")
+        if not math.isfinite(expected_interval) or expected_interval <= 0:
+            raise ValueError("expected_interval_seconds must be finite and > 0")
     ts_format = config.get("timestamp_format")
     provenance = config.get("provenance")
 
     checks: list[dict[str, Any]] = []
     rows: list[dict[str, str]] = []
 
-    with source.open("r", encoding="utf-8", newline="") as handle:
+    source_bytes = source.read_bytes()
+    source_hash = hashlib.sha256(source_bytes).hexdigest()
+    with io.StringIO(source_bytes.decode("utf-8-sig"), newline="") as handle:
         reader = csv.DictReader(handle)
         fieldnames = reader.fieldnames or []
+        invalid_header = not fieldnames or len(set(fieldnames)) != len(fieldnames) or any(not x.strip() for x in fieldnames)
+        checks.append(_check("unambiguous_header", "FAIL" if invalid_header else "PASS", int(invalid_header)))
         missing_cols = [c for c in required if c not in fieldnames]
         checks.append(_check("required_columns", "FAIL" if missing_cols else "PASS", len(missing_cols), missing_cols))
         rows = list(reader)
+    checks.append(_check("nonempty_data", "PASS" if rows else "FAIL", 0 if rows else 1))
+    malformed = [idx for idx, row in enumerate(rows, start=2) if None in row or any(value is None for value in row.values())]
+    checks.append(_check("rectangular_rows", "FAIL" if malformed else "PASS", len(malformed), malformed[:10]))
 
     provenance_ok = isinstance(provenance, dict) and all(
-        bool(str(provenance.get(key, "")).strip()) for key in ("source", "acquired_at", "license")
+        isinstance(provenance.get(key), str) and bool(provenance[key].strip())
+        for key in ("source", "acquired_at", "license")
     )
     checks.append(_check("provenance_metadata", "PASS" if provenance_ok else "FAIL", 0 if provenance_ok else 1, [] if provenance_ok else ["source/acquired_at/license required"]))
 
@@ -171,7 +183,7 @@ def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
             raw = row.get(ts_col, "")
             try:
                 parsed_ts.append((idx, _parse_timestamp(raw, ts_format), raw))
-            except Exception:
+            except (ValueError, TypeError, AttributeError, OverflowError):
                 ts_bad.append({"row": idx, "value": raw})
     else:
         ts_bad.append({"row": 1, "value": f"missing timestamp column {ts_col}"})
@@ -187,14 +199,14 @@ def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
     checks.append(_check("duplicate_timestamps", "FAIL" if duplicates else "PASS", len(duplicates), duplicates[:10]))
 
     disorder: list[dict[str, Any]] = []
-    for previous, current in zip(parsed_ts, parsed_ts[1:]):
+    for previous, current in pairwise(parsed_ts):
         if current[1] <= previous[1]:
             disorder.append({"previous_row": previous[0], "row": current[0], "previous": previous[2], "current": current[2]})
     checks.append(_check("strictly_increasing_timestamps", "FAIL" if disorder else "PASS", len(disorder), disorder[:10]))
 
     gaps: list[dict[str, Any]] = []
     if expected_interval is not None and not ts_bad:
-        for previous, current in zip(parsed_ts, parsed_ts[1:]):
+        for previous, current in pairwise(parsed_ts):
             delta = (current[1] - previous[1]).total_seconds()
             if delta != expected_interval:
                 gaps.append({"previous_row": previous[0], "row": current[0], "delta_seconds": delta, "expected_seconds": expected_interval})
@@ -204,16 +216,18 @@ def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
     volume_bad: list[dict[str, Any]] = []
     if not numeric_bad and not nonfinite:
         for idx, vals in enumerate(parsed_numeric, start=2):
-            if all(k in vals for k in ["open", "high", "low", "close"]):
-                if vals["high"] < max(vals["open"], vals["close"], vals["low"]) or vals["low"] > min(vals["open"], vals["close"], vals["high"]):
-                    ohlc_bad.append({"row": idx, "open": vals["open"], "high": vals["high"], "low": vals["low"], "close": vals["close"]})
+            if (all(k in vals for k in ["open", "high", "low", "close"])
+                    and (vals["high"] < max(vals["open"], vals["close"], vals["low"])
+                         or vals["low"] > min(vals["open"], vals["close"], vals["high"]))):
+                ohlc_bad.append({"row": idx, "open": vals["open"], "high": vals["high"], "low": vals["low"], "close": vals["close"]})
             if "volume" in vals and vals["volume"] < 0:
                 volume_bad.append({"row": idx, "volume": vals["volume"]})
     else:
         for idx, vals in enumerate(parsed_numeric, start=2):
-            if all(k in vals and math.isfinite(vals[k]) for k in ["open", "high", "low", "close"]):
-                if vals["high"] < max(vals["open"], vals["close"], vals["low"]) or vals["low"] > min(vals["open"], vals["close"], vals["high"]):
-                    ohlc_bad.append({"row": idx})
+            if (all(k in vals and math.isfinite(vals[k]) for k in ["open", "high", "low", "close"])
+                    and (vals["high"] < max(vals["open"], vals["close"], vals["low"])
+                         or vals["low"] > min(vals["open"], vals["close"], vals["high"]))):
+                ohlc_bad.append({"row": idx})
             if "volume" in vals and math.isfinite(vals["volume"]) and vals["volume"] < 0:
                 volume_bad.append({"row": idx, "volume": vals["volume"]})
     checks.append(_check("ohlc_constraints", "FAIL" if ohlc_bad else "PASS", len(ohlc_bad), ohlc_bad[:10]))
@@ -224,7 +238,7 @@ def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
         "schema_version": "1.0",
         "package_version": "0.1.0",
         "source_file": source.name,
-        "source_sha256": _sha256(source),
+        "source_sha256": source_hash,
         "config_sha256": _config_sha256(config),
         "row_count": len(rows),
         "time_range": {

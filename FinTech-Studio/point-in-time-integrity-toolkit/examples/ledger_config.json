@@ -1,0 +1,10 @@
+{
+  "asset": "SYNTHETIC_ARITHMETIC_FIXTURE",
+  "data_kind": "synthetic",
+  "source": "Manually specified six-interval engineering fixture; no market data or model prediction",
+  "license": "Repository license; synthetic values authored for this example",
+  "protocol_id": "FINANCEMETA_LEDGER_ENGINEERING_V1",
+  "fee_bps": 5,
+  "slippage_bps": 5,
+  "invalidation_condition": "Withhold every performance metric if any input column, timestamp ordering, latest feature availability, latest training-label availability, target interval, or numerical-contract check fails. This fixture is not evidence of economic performance."
+}
