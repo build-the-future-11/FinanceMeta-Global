@@ -1,0 +1,975 @@
+{
+  "arithmetic_checks": [
+    {
+      "float_absolute_error": "5.3E-17",
+      "method": "strategy",
+      "net_period_returns": [
+        "0.01",
+        "-0.015",
+        "-0.00",
+        "0.0025",
+        "-0.0060",
+        "-0.008"
+      ],
+      "net_total_return": "-0.016577722568000000",
+      "one_way_cost_bps": 0,
+      "turnover_units": "8.0"
+    },
+    {
+      "float_absolute_error": "1.33E-16",
+      "method": "buy_and_hold",
+      "net_period_returns": [
+        "0.01",
+        "0.015",
+        "-0.02",
+        "0.005",
+        "0.012",
+        "-0.008"
+      ],
+      "net_total_return": "0.0136119875974400",
+      "one_way_cost_bps": 0,
+      "turnover_units": "2"
+    },
+    {
+      "float_absolute_error": "0E-16",
+      "method": "cash",
+      "net_period_returns": [
+        "0.00",
+        "0.000",
+        "-0.00",
+        "0.000",
+        "0.000",
+        "-0.000"
+      ],
+      "net_total_return": "0E-16",
+      "one_way_cost_bps": 0,
+      "turnover_units": "0"
+    },
+    {
+      "float_absolute_error": "8.1785530000E-17",
+      "method": "strategy",
+      "net_period_returns": [
+        "0.0099",
+        "-0.0152",
+        "-0.0001",
+        "0.00245",
+        "-0.00610",
+        "-0.00825"
+      ],
+      "net_total_return": "-0.017368684792745751785530000",
+      "one_way_cost_bps": 1,
+      "turnover_units": "8.0"
+    },
+    {
+      "float_absolute_error": "3.7000000E-17",
+      "method": "buy_and_hold",
+      "net_period_returns": [
+        "0.0099",
+        "0.0150",
+        "-0.0200",
+        "0.0050",
+        "0.0120",
+        "-0.0081"
+      ],
+      "net_total_return": "0.013409461463819420000000",
+      "one_way_cost_bps": 1,
+      "turnover_units": "2"
+    },
+    {
+      "float_absolute_error": "0E-24",
+      "method": "cash",
+      "net_period_returns": [
+        "0.0000",
+        "0.0000",
+        "-0.0000",
+        "0.0000",
+        "0.0000",
+        "-0.0000"
+      ],
+      "net_total_return": "0E-24",
+      "one_way_cost_bps": 1,
+      "turnover_units": "0"
+    },
+    {
+      "float_absolute_error": "2.21562500000E-16",
+      "method": "strategy",
+      "net_period_returns": [
+        "0.0095",
+        "-0.0160",
+        "-0.0005",
+        "0.00225",
+        "-0.00650",
+        "-0.00925"
+      ],
+      "net_total_return": "-0.020527521569720929562500000",
+      "one_way_cost_bps": 5,
+      "turnover_units": "8.0"
+    },
+    {
+      "float_absolute_error": "2.10000000E-16",
+      "method": "buy_and_hold",
+      "net_period_returns": [
+        "0.0095",
+        "0.0150",
+        "-0.0200",
+        "0.0050",
+        "0.0120",
+        "-0.0085"
+      ],
+      "net_total_return": "0.012599559263253500000000",
+      "one_way_cost_bps": 5,
+      "turnover_units": "2"
+    },
+    {
+      "float_absolute_error": "0E-24",
+      "method": "cash",
+      "net_period_returns": [
+        "0.0000",
+        "0.0000",
+        "-0.0000",
+        "0.0000",
+        "0.0000",
+        "-0.0000"
+      ],
+      "net_total_return": "0E-24",
+      "one_way_cost_bps": 5,
+      "turnover_units": "0"
+    },
+    {
+      "float_absolute_error": "6.9000E-17",
+      "method": "strategy",
+      "net_period_returns": [
+        "0.009",
+        "-0.017",
+        "-0.001",
+        "0.0020",
+        "-0.0070",
+        "-0.0105"
+      ],
+      "net_total_return": "-0.024464808292402009000",
+      "one_way_cost_bps": 10,
+      "turnover_units": "8.0"
+    },
+    {
+      "float_absolute_error": "3.44E-16",
+      "method": "buy_and_hold",
+      "net_period_returns": [
+        "0.009",
+        "0.015",
+        "-0.020",
+        "0.005",
+        "0.012",
+        "-0.009"
+      ],
+      "net_total_return": "0.011587636763858000",
+      "one_way_cost_bps": 10,
+      "turnover_units": "2"
+    },
+    {
+      "float_absolute_error": "0E-18",
+      "method": "cash",
+      "net_period_returns": [
+        "0.000",
+        "0.000",
+        "-0.000",
+        "0.000",
+        "0.000",
+        "-0.000"
+      ],
+      "net_total_return": "0E-18",
+      "one_way_cost_bps": 10,
+      "turnover_units": "0"
+    },
+    {
+      "float_absolute_error": "1.01343750000E-16",
+      "method": "strategy",
+      "net_period_returns": [
+        "0.0075",
+        "-0.0200",
+        "-0.0025",
+        "0.00125",
+        "-0.00850",
+        "-0.01425"
+      ],
+      "net_total_return": "-0.036201894604649277343750000",
+      "one_way_cost_bps": 25,
+      "turnover_units": "8.0"
+    },
+    {
+      "float_absolute_error": "2.03000000E-16",
+      "method": "buy_and_hold",
+      "net_period_returns": [
+        "0.0075",
+        "0.0150",
+        "-0.0200",
+        "0.0050",
+        "0.0120",
+        "-0.0105"
+      ],
+      "net_total_return": "0.008554904274417500000000",
+      "one_way_cost_bps": 25,
+      "turnover_units": "2"
+    },
+    {
+      "float_absolute_error": "0E-24",
+      "method": "cash",
+      "net_period_returns": [
+        "0.0000",
+        "0.0000",
+        "-0.0000",
+        "0.0000",
+        "0.0000",
+        "-0.0000"
+      ],
+      "net_total_return": "0E-24",
+      "one_way_cost_bps": 25,
+      "turnover_units": "0"
+    }
+  ],
+  "case_count": 58,
+  "cases": [
+    {
+      "actual": "PASS",
+      "expected": "PASS",
+      "failed_checks": [],
+      "family": "valid",
+      "id": "clean",
+      "input_sha256": "309490bd9893c4d49265887eb63a53bc2d19659505e102494dab762c428310ab",
+      "performance_withheld": false
+    },
+    {
+      "actual": "PASS",
+      "expected": "PASS",
+      "failed_checks": [],
+      "family": "equivalent_offsets",
+      "id": "same_instants_offset_-420",
+      "input_sha256": "80bb2135d13eaffacbe240d70a1bde38cf18bf223aaad193809302ad99dde9cb",
+      "performance_withheld": false
+    },
+    {
+      "actual": "PASS",
+      "expected": "PASS",
+      "failed_checks": [],
+      "family": "equivalent_offsets",
+      "id": "same_instants_offset_330",
+      "input_sha256": "feecae6189bf8c7f9037e5c2ba6ccdd0dfed3466f07e0efa1cbe82f47e1a1a65",
+      "performance_withheld": false
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "feature_availability"
+      ],
+      "family": "future_feature",
+      "id": "future_feature_0",
+      "input_sha256": "09af6f72baf01a4fdec3b1cd25d849dfedaafb682d2ee44be8eea77e91bd5796",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "training_cutoff"
+      ],
+      "family": "future_training",
+      "id": "future_training_0",
+      "input_sha256": "d906f34392754aa345f52cc0a9844e4e9a592e5ce4534eb912dde699e415956c",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "future_target",
+        "contiguous_intervals"
+      ],
+      "family": "zero_target_interval",
+      "id": "zero_target_interval_0",
+      "input_sha256": "648e285b733f9fd3176e5f524b4914041289f0c4c9f439d4fcc805b9a8a3aa9d",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "unsupported_exposure",
+      "id": "unsupported_exposure_0",
+      "input_sha256": "97cf56478561dc15e83eab72e6145067894241b014f301d46e55a27953b03b91",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "nonfinite_return",
+      "id": "nonfinite_return_0",
+      "input_sha256": "1b25a7863bae801dc7ad2244863ba4676fb06d39e0e3e6ac1aa450a0a2c41d2e",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "parseability"
+      ],
+      "family": "naive_decision",
+      "id": "naive_decision_0",
+      "input_sha256": "1f1809bfbd7fe56c43acde0ef048a50f8cb5d1824305f351f8d3436993258a66",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "feature_availability"
+      ],
+      "family": "future_feature",
+      "id": "future_feature_1",
+      "input_sha256": "6d7f3d431290e80d425cb6720fd0d3ea8c034263cee09e024ab12853fa2e5daa",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "training_cutoff"
+      ],
+      "family": "future_training",
+      "id": "future_training_1",
+      "input_sha256": "e610c3af6ced6cdadc8d7b2d9564ab09ed2ba23dcd947de4c45018750accc0ff",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "future_target",
+        "contiguous_intervals"
+      ],
+      "family": "zero_target_interval",
+      "id": "zero_target_interval_1",
+      "input_sha256": "4dac1079c25b2bc8fc971c32cb65402f292b26df5ebe2dd252f46807d81d650a",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "unsupported_exposure",
+      "id": "unsupported_exposure_1",
+      "input_sha256": "e69d4b2c3d2cca9c0f1b8a3b064d6bf3b56d1a8dc45bff1cd3e6f9e6de8bb492",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "nonfinite_return",
+      "id": "nonfinite_return_1",
+      "input_sha256": "508f36574d62d24fd66971c3d8296607272543adbb6ad26564fe86564fc4b0ae",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "parseability",
+        "contiguous_intervals"
+      ],
+      "family": "naive_decision",
+      "id": "naive_decision_1",
+      "input_sha256": "c625580ef461daca642818baf113e635704b583d6e099055c23090f202560161",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "feature_availability"
+      ],
+      "family": "future_feature",
+      "id": "future_feature_2",
+      "input_sha256": "ee14cc984274771492c73e6833156f621f2dba32d789e67b4fa7f79bce953b0c",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "training_cutoff"
+      ],
+      "family": "future_training",
+      "id": "future_training_2",
+      "input_sha256": "6eb0a4dbef349c0c2eaebe6a402fa65fad5109aa1c49a1b1dd56ac0eb93b54eb",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "future_target",
+        "contiguous_intervals"
+      ],
+      "family": "zero_target_interval",
+      "id": "zero_target_interval_2",
+      "input_sha256": "c210baf507e47684e1956e8b5abd6831c8a2ccc3b719bce85ce61dab513e720d",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "unsupported_exposure",
+      "id": "unsupported_exposure_2",
+      "input_sha256": "f4e3805e769a6af771631ad17bed176b5a715fdf595b8a654a028b928c7fc1f9",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "nonfinite_return",
+      "id": "nonfinite_return_2",
+      "input_sha256": "c4b50e43732e5e2b1dc3540590e26ebc7eebea922000430bc0126196c9ed7161",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "parseability",
+        "contiguous_intervals"
+      ],
+      "family": "naive_decision",
+      "id": "naive_decision_2",
+      "input_sha256": "5f7a12a4123d9ddb5918893e5cf5a2628f67d9630402cff7f298658715b9ba55",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "feature_availability"
+      ],
+      "family": "future_feature",
+      "id": "future_feature_3",
+      "input_sha256": "d95afd09fbca3400884906a8cb03843cff2340f94f14657287890487f9e7e8c2",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "training_cutoff"
+      ],
+      "family": "future_training",
+      "id": "future_training_3",
+      "input_sha256": "65c8a318cf72eb6280ad532bce9706b0fb14b1002fd08fd763d40e3b51811087",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "future_target",
+        "contiguous_intervals"
+      ],
+      "family": "zero_target_interval",
+      "id": "zero_target_interval_3",
+      "input_sha256": "85eadffa51a2012bcd69ce822dcdfababe2d28e5c6ea4fa17817109f5b9387ea",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "unsupported_exposure",
+      "id": "unsupported_exposure_3",
+      "input_sha256": "1d4b4283d9d6760be41e188d3932164c9e7bd1caebb645f3117874f97918ad3d",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "nonfinite_return",
+      "id": "nonfinite_return_3",
+      "input_sha256": "38b5d0e1449ed6b30e687f2ae2ff7971f2661d3428189a52cbd19bbfe247d5b2",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "parseability",
+        "contiguous_intervals"
+      ],
+      "family": "naive_decision",
+      "id": "naive_decision_3",
+      "input_sha256": "4c17fedec7c963aaf69d24e4ab6719e3185477202bc3aa1a5cf72ca74fcf672b",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "feature_availability"
+      ],
+      "family": "future_feature",
+      "id": "future_feature_4",
+      "input_sha256": "23904f962ee540458d2b7abcf2ae2a7fb68e08e480d4a9b4e84c2f2260b36329",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "training_cutoff"
+      ],
+      "family": "future_training",
+      "id": "future_training_4",
+      "input_sha256": "6b51ec79215a1e6db074c44beb8dd23bc4f3e3273d2059365cbc8bced21f4483",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "future_target",
+        "contiguous_intervals"
+      ],
+      "family": "zero_target_interval",
+      "id": "zero_target_interval_4",
+      "input_sha256": "db8e6bfaf4fbb1e69671a31bdcc5e847702804f0368f799e8d6cc5d7da37d341",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "unsupported_exposure",
+      "id": "unsupported_exposure_4",
+      "input_sha256": "98353aa30cf06a42a041ee6c1c6b3df04d5033c6e6746394d09f31c0095b06d1",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "nonfinite_return",
+      "id": "nonfinite_return_4",
+      "input_sha256": "2207d86966bcbdbfcee5d5fccbde0dede5ce8e13e506dee412fc1774cf0202de",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "parseability",
+        "contiguous_intervals"
+      ],
+      "family": "naive_decision",
+      "id": "naive_decision_4",
+      "input_sha256": "70f8c67a3e0d739bf856059cf302c7f446b5df57e371befadee23fb7ffd69ab0",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "feature_availability"
+      ],
+      "family": "future_feature",
+      "id": "future_feature_5",
+      "input_sha256": "4c1eb585ef9f0624b1ebf6a58ad047c2b36e1b4a48c7cd8214b5509ea46c1994",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "training_cutoff"
+      ],
+      "family": "future_training",
+      "id": "future_training_5",
+      "input_sha256": "e334e9f131c1cbc73ef8f9e7d299b62b13207ad1968aa208c3a2448f4c6d1261",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "future_target"
+      ],
+      "family": "zero_target_interval",
+      "id": "zero_target_interval_5",
+      "input_sha256": "ee95b3e3fcba8cf6ec87aedb15cae1bfe930e87dcba4981409b89842eab3eb28",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "unsupported_exposure",
+      "id": "unsupported_exposure_5",
+      "input_sha256": "ea0925365a948bd35adc527bfca19b7594e8e1408100092ba37a6cc9d4991551",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "numerical_contract"
+      ],
+      "family": "nonfinite_return",
+      "id": "nonfinite_return_5",
+      "input_sha256": "dbbd52141f084ab0c83801e00cc4994cfc433a32ebae5c3a08d4f16fd92d998f",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "parseability"
+      ],
+      "family": "naive_decision",
+      "id": "naive_decision_5",
+      "input_sha256": "f3814f95a56963d1955c5fe15131313aafd0d0a4a74063da8770420543c1b803",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_gap",
+      "id": "interval_gap_1",
+      "input_sha256": "f29e7a3750b6830ee94b7c950dc208dcfd930851ac815f6cdee58af2db23b452",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_overlap",
+      "id": "interval_overlap_1",
+      "input_sha256": "04f94ae869ec675efa366a1d361ebf9cdfa084b7a570a5326e3ee4affb030714",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "strict_decision_order",
+        "feature_availability",
+        "contiguous_intervals"
+      ],
+      "family": "duplicate_decision",
+      "id": "duplicate_decision_1",
+      "input_sha256": "ee633c2b1811c8164c6a0f7d52c0550ba08870697b0e82f5382bd632dd027f9b",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_gap",
+      "id": "interval_gap_2",
+      "input_sha256": "422990c2fc09e86cd44e89755800e5f0b2c5749d4388af0c8f0a183094f490b9",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_overlap",
+      "id": "interval_overlap_2",
+      "input_sha256": "64b6afa050d47285662c6d5b2c08efd90a1048816ae1ee108e8bfffffbb611dd",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "strict_decision_order",
+        "feature_availability",
+        "contiguous_intervals"
+      ],
+      "family": "duplicate_decision",
+      "id": "duplicate_decision_2",
+      "input_sha256": "a997ee24ee8a37e232274ef1b0c6b76b97770834042fe516210ed5843612a1e8",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_gap",
+      "id": "interval_gap_3",
+      "input_sha256": "48d10cc407a6cbefcb39c04e19af30a73fd5ad3c909069ab2bc95f4d6943e680",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_overlap",
+      "id": "interval_overlap_3",
+      "input_sha256": "3eeb54c7d0d6bb45d4de3f47e857206fa549c042fb44ca5fdbd158c39d18eab2",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "strict_decision_order",
+        "feature_availability",
+        "contiguous_intervals"
+      ],
+      "family": "duplicate_decision",
+      "id": "duplicate_decision_3",
+      "input_sha256": "1864b7282dd1be586a4941e2d8aa2af20da6f4da6ff574e1321fd01504240699",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_gap",
+      "id": "interval_gap_4",
+      "input_sha256": "638ce3263235bb85ab775e4b5d565520430dcbdecde080a83380dd55c35da4fe",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_overlap",
+      "id": "interval_overlap_4",
+      "input_sha256": "56bc642ee471ab98ce3227d5cc5c5d321a900b403063807f8389515c4c584319",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "strict_decision_order",
+        "feature_availability",
+        "contiguous_intervals"
+      ],
+      "family": "duplicate_decision",
+      "id": "duplicate_decision_4",
+      "input_sha256": "2fc4fa43c759d5b84d6d2a06faec24568dcaf00d230625bae06f22da6facde3a",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_gap",
+      "id": "interval_gap_5",
+      "input_sha256": "c8c3473ec01984e5caa2d8dee1ea96d718dab387ade318c33ba30b43ae09c504",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "contiguous_intervals"
+      ],
+      "family": "interval_overlap",
+      "id": "interval_overlap_5",
+      "input_sha256": "e728d5f1cc6a8f97857662c35102edc789e11af3149fa692456e6bb7f48620ce",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "strict_decision_order",
+        "feature_availability",
+        "contiguous_intervals"
+      ],
+      "family": "duplicate_decision",
+      "id": "duplicate_decision_5",
+      "input_sha256": "6e8e2c46a6b514638f2d589290ac54bbcc5ae6cc4f169fe13a643705522a673b",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "nonempty_data"
+      ],
+      "family": "schema_or_empty",
+      "id": "empty_rows",
+      "input_sha256": "cd1fa38cccf4b420ad9ef34ac804c111fc584aae76fa32160b3f697c070c8f6b",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "schema",
+        "parseability"
+      ],
+      "family": "schema_or_empty",
+      "id": "missing_column",
+      "input_sha256": "92ec95688ce0a2adba63bd900557b2ea1760e22d6a3521643cd8b08ea5c54a42",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "schema"
+      ],
+      "family": "schema_or_empty",
+      "id": "extra_column",
+      "input_sha256": "ac5613a20af1755641c0bdba2ffd7f9452ef5e1a4d086a2ebf3cbd5bbbdcbf14",
+      "performance_withheld": true
+    },
+    {
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "failed_checks": [
+        "schema",
+        "parseability"
+      ],
+      "family": "schema_or_empty",
+      "id": "duplicate_header",
+      "input_sha256": "deabdee2007f800bda7d0734f457b372645d3a0966b43f3f05c2ab1d00ff2d25",
+      "performance_withheld": true
+    }
+  ],
+  "families": {
+    "duplicate_decision": {
+      "cases": 5,
+      "expected_fail": 5,
+      "expected_pass": 0,
+      "observed_match": 5
+    },
+    "equivalent_offsets": {
+      "cases": 2,
+      "expected_fail": 0,
+      "expected_pass": 2,
+      "observed_match": 2
+    },
+    "future_feature": {
+      "cases": 6,
+      "expected_fail": 6,
+      "expected_pass": 0,
+      "observed_match": 6
+    },
+    "future_training": {
+      "cases": 6,
+      "expected_fail": 6,
+      "expected_pass": 0,
+      "observed_match": 6
+    },
+    "interval_gap": {
+      "cases": 5,
+      "expected_fail": 5,
+      "expected_pass": 0,
+      "observed_match": 5
+    },
+    "interval_overlap": {
+      "cases": 5,
+      "expected_fail": 5,
+      "expected_pass": 0,
+      "observed_match": 5
+    },
+    "naive_decision": {
+      "cases": 6,
+      "expected_fail": 6,
+      "expected_pass": 0,
+      "observed_match": 6
+    },
+    "nonfinite_return": {
+      "cases": 6,
+      "expected_fail": 6,
+      "expected_pass": 0,
+      "observed_match": 6
+    },
+    "schema_or_empty": {
+      "cases": 4,
+      "expected_fail": 4,
+      "expected_pass": 0,
+      "observed_match": 4
+    },
+    "unsupported_exposure": {
+      "cases": 6,
+      "expected_fail": 6,
+      "expected_pass": 0,
+      "observed_match": 6
+    },
+    "valid": {
+      "cases": 1,
+      "expected_fail": 0,
+      "expected_pass": 1,
+      "observed_match": 1
+    },
+    "zero_target_interval": {
+      "cases": 6,
+      "expected_fail": 6,
+      "expected_pass": 0,
+      "observed_match": 6
+    }
+  },
+  "invalid_cases": 55,
+  "limits": [
+    "No observed financial data, model fitting, hyperparameter search, new holdout, or FI-JEPA rerun.",
+    "Enumerated fixtures are coverage checks, not population sensitivity or specificity estimates.",
+    "Equivalent timestamp spellings preserve the same instants; metadata truth is not authenticated.",
+    "Cost sweep checks arithmetic only; no selected profitable configuration or trading recommendation."
+  ],
+  "protocol": "FINANCEMETA_LEDGER_FAULT_ENUMERATION_V1",
+  "source_sha256": {
+    "examples/ledger_clean.csv": "309490bd9893c4d49265887eb63a53bc2d19659505e102494dab762c428310ab",
+    "examples/ledger_config.json": "ac872fa925256407cc5d2219a5019eeddf6fd1aa228539077fde1192826a3929",
+    "src/financemeta_data_audit/backtest.py": "caf8da9c656be5987acd4577697c3b0a864c727a36a550ec55c444701c59296a"
+  },
+  "status": "PASS",
+  "study_kind": "synthetic exhaustive fault locations on one retained six-interval fixture",
+  "valid_cases": 3
+}

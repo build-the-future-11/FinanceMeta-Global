@@ -51,6 +51,19 @@ jobs:
         run: python -m compileall -q "${TOOL_ROOT}/src" "${TOOL_ROOT}/benchmark" "${TOOL_ROOT}/tests" "${TOOL_ROOT}/examples"
       - name: Run unit suite
         run: python -m unittest discover -s "${TOOL_ROOT}/tests" -v
+      - name: Verify publication oracle and retained fault enumeration
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAPER_ROOT="${TOOL_ROOT}/publication/raiops4fin2026"
+          python -m unittest discover -s "${PAPER_ROOT}" -p 'test_*.py' -v
+          python "${PAPER_ROOT}/analyze_ledger_controls.py" \
+            --package "${TOOL_ROOT}" \
+            --output "${RUNNER_TEMP}/fintech-publication-ledger"
+          cmp "${RUNNER_TEMP}/fintech-publication-ledger/summary.json" \
+            "${PAPER_ROOT}/evidence/ledger-fault-enumeration-v1/summary.json"
+          cmp "${RUNNER_TEMP}/fintech-publication-ledger/SHA256SUMS.json" \
+            "${PAPER_ROOT}/evidence/ledger-fault-enumeration-v1/SHA256SUMS.json"
       - name: Reproduce frozen 70-fixture benchmark
         shell: bash
         run: |
@@ -94,5 +107,6 @@ jobs:
             ${{ runner.temp }}/fintech-studio-environment.txt
             ${{ runner.temp }}/fintech-studio-ledger
             ${{ runner.temp }}/fijepa-retained-audit.json
+            ${{ runner.temp }}/fintech-publication-ledger
           if-no-files-found: error
           retention-days: 14

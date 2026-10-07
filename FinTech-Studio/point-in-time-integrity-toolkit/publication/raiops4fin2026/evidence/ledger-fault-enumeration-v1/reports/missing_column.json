@@ -1,0 +1,114 @@
+{
+  "checks": [
+    {
+      "count": 1,
+      "examples": [
+        {
+          "detail": "require exactly these unique columns: timestamp, available_at, trained_through, target_end, position, asset_return",
+          "row": 1
+        }
+      ],
+      "id": "schema",
+      "status": "FAIL"
+    },
+    {
+      "count": 0,
+      "examples": [],
+      "id": "nonempty_data",
+      "status": "PASS"
+    },
+    {
+      "count": 6,
+      "examples": [
+        {
+          "detail": "'asset_return'",
+          "row": 2
+        },
+        {
+          "detail": "'asset_return'",
+          "row": 3
+        },
+        {
+          "detail": "'asset_return'",
+          "row": 4
+        },
+        {
+          "detail": "'asset_return'",
+          "row": 5
+        },
+        {
+          "detail": "'asset_return'",
+          "row": 6
+        },
+        {
+          "detail": "'asset_return'",
+          "row": 7
+        }
+      ],
+      "id": "parseability",
+      "status": "FAIL"
+    },
+    {
+      "count": 0,
+      "examples": [],
+      "id": "strict_decision_order",
+      "status": "PASS"
+    },
+    {
+      "count": 0,
+      "examples": [],
+      "id": "feature_availability",
+      "status": "PASS"
+    },
+    {
+      "count": 0,
+      "examples": [],
+      "id": "training_cutoff",
+      "status": "PASS"
+    },
+    {
+      "count": 0,
+      "examples": [],
+      "id": "future_target",
+      "status": "PASS"
+    },
+    {
+      "count": 0,
+      "examples": [],
+      "id": "contiguous_intervals",
+      "status": "PASS"
+    },
+    {
+      "count": 0,
+      "examples": [],
+      "id": "numerical_contract",
+      "status": "PASS"
+    }
+  ],
+  "claim_boundary": [
+    "These are hypothetical ledger returns, not realized investment returns.",
+    "Producer-supplied availability/training timestamps are checked for internal consistency only.",
+    "No survivorship, corporate-action, publication-time, borrow-cost, market-impact, or execution-price certification.",
+    "Costs use changes in declared target exposure; drift-induced rebalancing and financing are not modeled.",
+    "Target exposures outside [-1, 1] and zero/negative wealth paths are unsupported.",
+    "No model is trained or selected and no new protected study is authorized by this audit."
+  ],
+  "config": {
+    "asset": "SYNTHETIC_ARITHMETIC_FIXTURE",
+    "data_kind": "synthetic",
+    "fee_bps": 5,
+    "invalidation_condition": "Withhold every performance metric if any input column, timestamp ordering, latest feature availability, latest training-label availability, target interval, or numerical-contract check fails. This fixture is not evidence of economic performance.",
+    "license": "Repository license; synthetic values authored for this example",
+    "protocol_id": "FINANCEMETA_LEDGER_ENGINEERING_V1",
+    "slippage_bps": 5,
+    "source": "Manually specified six-interval engineering fixture; no market data or model prediction"
+  },
+  "config_sha256": "ffca47c494f20d8b709faadd523b336470d12f2ba2078ea163fd24176eb54423",
+  "cost_model": "one-way fee+slippage per absolute weight change; initially flat; terminal liquidation charged",
+  "overall_status": "FAIL",
+  "performance": null,
+  "row_count": 6,
+  "schema_version": "financemeta-backtest-ledger-v1",
+  "source_file": "missing_column.csv",
+  "source_sha256": "92ec95688ce0a2adba63bd900557b2ea1760e22d6a3521643cd8b08ea5c54a42"
+}
