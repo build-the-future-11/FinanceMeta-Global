@@ -31,6 +31,7 @@ JSON or a small dependency-free mapping-only YAML subset is supported.
 ## Checks
 
 - required columns;
+- nonempty data, unambiguous column names, and consistent row widths;
 - numeric parsing;
 - timestamp parsing;
 - strict timestamp ordering;
@@ -47,6 +48,21 @@ The CLI writes `report.json` and `summary.md`, binding the report to source/conf
 
 The benchmark generates exactly 70 deterministic synthetic fixtures and retains one JSON report per fixture plus `benchmark_summary.json`.
 
+## Admission correction, 10 October 2026
+
+The reader now rejects header-only files, duplicate or blank column names, extra
+or missing row cells, nontext provenance, and invalid interval/column settings.
+The report hashes the exact byte snapshot that was parsed. Explicit timestamp
+formats use the same UTC normalization as ISO timestamps. Named optional columns
+remain supported, including empty values when the column is not required.
+
+The expanded unit suite passes 16 tests, including the original 70-fixture
+benchmark. Its generated aggregate summary remains byte-identical to the
+retained summary. The new adversarial cases expose false passes outside that
+benchmark; this does not expand the benchmark's scientific scope or overwrite
+its evidence.
+
 ## Boundary
 
 A PASS means the file passed this frozen v1 structural checklist. It does not prove the dataset is survivorship-bias-free, correctly adjusted for corporate actions, fully point-in-time, suitable for investment decisions, or capable of producing profitable results.
+

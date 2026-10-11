@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import json
 import math
 from datetime import datetime, timezone
@@ -104,12 +105,13 @@ def _check(check_id: str, status: str, count: int = 0, examples: list[Any] | Non
 
 def _parse_timestamp(raw: str, fmt: str | None) -> datetime:
     if fmt:
-        return datetime.strptime(raw, fmt)
-    value = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
-    dt = datetime.fromisoformat(value)
+        dt = datetime.strptime(raw, fmt)
+    else:
+        value = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+        dt = datetime.fromisoformat(value)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
-    return dt
+    return dt.astimezone(timezone.utc)
 
 
 def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
@@ -118,30 +120,49 @@ def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
         raise FileNotFoundError(source)
 
     required = config.get("required_columns", REQUIRED_DEFAULT)
-    if not isinstance(required, list) or not all(isinstance(x, str) for x in required):
-        raise ValueError("required_columns must be a list of strings")
+    if (
+        not isinstance(required, list)
+        or not required
+        or not all(isinstance(x, str) and x.strip() for x in required)
+        or len(required) != len(set(required))
+    ):
+        raise ValueError("required_columns must be a nonempty list of unique column names")
 
-    ts_col = str(config.get("timestamp_column", "timestamp"))
+    ts_col = config.get("timestamp_column", "timestamp")
+    if not isinstance(ts_col, str) or not ts_col.strip():
+        raise ValueError("timestamp_column must be a nonempty string")
     expected_interval = config.get("expected_interval_seconds")
     if expected_interval is not None:
+        if isinstance(expected_interval, bool):
+            raise ValueError("expected_interval_seconds must be finite and > 0")
         expected_interval = float(expected_interval)
-        if expected_interval <= 0:
-            raise ValueError("expected_interval_seconds must be > 0")
+        if not math.isfinite(expected_interval) or expected_interval <= 0:
+            raise ValueError("expected_interval_seconds must be finite and > 0")
     ts_format = config.get("timestamp_format")
+    if ts_format is not None and (not isinstance(ts_format, str) or not ts_format):
+        raise ValueError("timestamp_format must be a nonempty string")
     provenance = config.get("provenance")
 
     checks: list[dict[str, Any]] = []
     rows: list[dict[str, str]] = []
 
-    with source.open("r", encoding="utf-8", newline="") as handle:
+    source_payload = source.read_bytes()
+    with io.StringIO(source_payload.decode("utf-8"), newline="") as handle:
         reader = csv.DictReader(handle)
         fieldnames = reader.fieldnames or []
-        missing_cols = [c for c in required if c not in fieldnames]
+        expected_columns = list(dict.fromkeys([*required, ts_col]))
+        missing_cols = [c for c in expected_columns if c not in fieldnames]
         checks.append(_check("required_columns", "FAIL" if missing_cols else "PASS", len(missing_cols), missing_cols))
+        ambiguous = sorted({name for name in fieldnames if not name.strip() or fieldnames.count(name) > 1})
+        checks.append(_check("unambiguous_header", "FAIL" if ambiguous else "PASS", len(ambiguous), ambiguous))
         rows = list(reader)
+    malformed_rows = [idx for idx, row in enumerate(rows, start=2) if None in row or any(value is None for value in row.values())]
+    checks.append(_check("consistent_row_width", "FAIL" if malformed_rows else "PASS", len(malformed_rows), malformed_rows[:10]))
+    checks.append(_check("nonempty_data", "PASS" if rows else "FAIL", 0 if rows else 1))
 
     provenance_ok = isinstance(provenance, dict) and all(
-        bool(str(provenance.get(key, "")).strip()) for key in ("source", "acquired_at", "license")
+        isinstance(provenance.get(key), str) and bool(provenance[key].strip())
+        for key in ("source", "acquired_at", "license")
     )
     checks.append(_check("provenance_metadata", "PASS" if provenance_ok else "FAIL", 0 if provenance_ok else 1, [] if provenance_ok else ["source/acquired_at/license required"]))
 
@@ -224,7 +245,7 @@ def audit_csv(csv_path: str | Path, config: dict[str, Any]) -> dict[str, Any]:
         "schema_version": "1.0",
         "package_version": "0.1.0",
         "source_file": source.name,
-        "source_sha256": _sha256(source),
+        "source_sha256": hashlib.sha256(source_payload).hexdigest(),
         "config_sha256": _config_sha256(config),
         "row_count": len(rows),
         "time_range": {
@@ -252,3 +273,4 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"| {item['id']} | {item['status']} | {item['count']} |")
     lines.extend(["", "This tool is read-only and does not certify point-in-time suitability for every research question."])
     return "\n".join(lines) + "\n"
+

@@ -26,6 +26,19 @@ This generates exactly 70 deterministic fixtures in seven frozen categories and 
 
 Run: pytest
 
+## Admission correction, 10 October 2026
+
+CSV headers must be unique and nonblank, row widths must match the header, and
+column mappings must name distinct required fields. Provenance requires actual
+nonblank text. Expected intervals must be finite and positive; fractional
+seconds are retained when checking for missing intervals, so a subsecond gap
+cannot disappear through integer truncation.
+
+The expanded suite passes 30 tests including the existing frozen 70-fixture
+benchmark. Retained evidence and benchmark definitions are unchanged. These
+corrections reject malformed input under the existing structural contract and
+do not establish predictive or investment performance.
+
 ## Limitations
 
 Passing v1 does not prove:
@@ -36,3 +49,4 @@ Passing v1 does not prove:
 - predictive value or profitability.
 
 The checker validates structural integrity under the declared configuration. It does not silently clean or modify source data.
+

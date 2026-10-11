@@ -52,15 +52,29 @@ def validate_csv(csv_path: Path, config_path: Path) -> dict[str, Any]:
     source_hash_before = sha256_file(csv_path)
     config_hash = sha256_file(config_path)
     config = load_config(config_path)
-    interval_seconds = int(config.get("expected_interval_seconds", 86400))
-    if interval_seconds <= 0:
-        raise ValueError("expected_interval_seconds must be positive")
+    interval_value = config.get("expected_interval_seconds", 86400)
+    if isinstance(interval_value, bool):
+        raise ValueError("expected_interval_seconds must be finite and positive")
+    interval_seconds = float(interval_value)
+    if not math.isfinite(interval_seconds) or interval_seconds <= 0:
+        raise ValueError("expected_interval_seconds must be finite and positive")
 
     provenance = config.get("provenance")
-    provenance_ok = isinstance(provenance, dict) and bool(provenance.get("source"))
+    provenance_ok = (
+        isinstance(provenance, dict)
+        and isinstance(provenance.get("source"), str)
+        and bool(provenance["source"].strip())
+    )
     timestamp_format = config.get("timestamp_format")
     mapping = config.get("columns", {})
+    if not isinstance(mapping, dict):
+        raise ValueError("columns must be a mapping")
     columns = {name: mapping.get(name, name) for name in REQUIRED_FIELDS}
+    if (
+        not all(isinstance(name, str) and name.strip() for name in columns.values())
+        or len(set(columns.values())) != len(REQUIRED_FIELDS)
+    ):
+        raise ValueError("columns must map each required field to a distinct nonempty name")
     findings: list[Finding] = []
     rows: list[dict[str, Any]] = []
     parse_error_rows: list[int] = []
@@ -74,8 +88,13 @@ def validate_csv(csv_path: Path, config_path: Path) -> dict[str, Any]:
             source_hash_after = sha256_file(csv_path)
             return _report(csv_path, config_path, source_hash_before, source_hash_after, config_hash, config, findings, [], provenance_ok)
         findings.append(Finding("required_columns", True, "all required columns present", [], []))
+        ambiguous = sorted({name for name in header if not name.strip() or header.count(name) > 1})
+        findings.append(Finding("unambiguous_header", not ambiguous, f"ambiguous columns: {ambiguous}" if ambiguous else "column names are unique and nonempty", [], []))
 
         for idx, raw in enumerate(reader, start=2):
+            if None in raw or any(value is None for value in raw.values()):
+                parse_error_rows.append(idx)
+                continue
             try:
                 ts_text = raw[columns["timestamp"]]
                 ts = _parse_timestamp(ts_text, timestamp_format)
@@ -114,7 +133,7 @@ def validate_csv(csv_path: Path, config_path: Path) -> dict[str, Any]:
         gap_rows: list[int] = []
         gap_ts: list[str] = []
         for prev, cur in zip(rows, rows[1:]):
-            delta = int((cur["timestamp"] - prev["timestamp"]).total_seconds())
+            delta = (cur["timestamp"] - prev["timestamp"]).total_seconds()
             if delta > interval_seconds:
                 gap_rows.append(cur["row"])
                 gap_ts.append(f"{prev['timestamp'].isoformat()} -> {cur['timestamp'].isoformat()}")
@@ -167,3 +186,4 @@ def markdown_summary(report: dict[str, Any]) -> str:
         lines.append(f"| {finding['check']} | {'PASS' if finding['passed'] else 'FAIL'} | {finding['message']} |")
     lines.extend(["", "Passing this checker does not prove a dataset is unbiased, fully point-in-time safe, or suitable for investment decisions."])
     return "\n".join(lines) + "\n"
+
