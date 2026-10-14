@@ -66,7 +66,7 @@ jobs:
           sha256sum scripts/validate_registry.py tests/test_validate_registry.py >> registry-validation.txt
           find registry -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum >> registry-validation.txt
       - name: Upload registry validation evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: registry-validation-${{ env.SOURCE_SHA }}
           path: registry-validation.txt
