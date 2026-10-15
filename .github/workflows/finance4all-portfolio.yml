@@ -1,0 +1,33 @@
+name: Finance4All Portfolio Registry
+
+on:
+  pull_request:
+    paths:
+      - 'registry/finance4all_4month_projects.json'
+      - 'scripts/validate_finance4all_portfolio.py'
+      - 'tests/test_finance4all_portfolio.py'
+      - '.github/workflows/finance4all-portfolio.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'registry/finance4all_4month_projects.json'
+      - 'scripts/validate_finance4all_portfolio.py'
+      - 'tests/test_finance4all_portfolio.py'
+      - '.github/workflows/finance4all-portfolio.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validate portfolio registry
+        run: |
+          set -euo pipefail
+          python3 scripts/validate_finance4all_portfolio.py
+          python3 -m unittest tests/test_finance4all_portfolio.py -v

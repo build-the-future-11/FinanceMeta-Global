@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financemeta.org/schema/financebench-v0.schema.json",
+  "title": "FinanceBench v0 Benchmark Contract",
+  "type": "object",
+  "required": [
+    "benchmark_id",
+    "title",
+    "task",
+    "data",
+    "splits",
+    "baselines",
+    "metrics",
+    "leakage_controls",
+    "reproducibility",
+    "result_status",
+    "release_decision"
+  ],
+  "properties": {
+    "benchmark_id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "task": {
+      "type": "object",
+      "required": ["target", "horizon", "primary_question"],
+      "properties": {
+        "target": {"type": "string"},
+        "horizon": {"type": "string"},
+        "primary_question": {"type": "string"},
+        "failure_condition": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "required": ["source", "license", "version", "point_in_time"],
+      "properties": {
+        "source": {"type": "string"},
+        "license": {"type": "string"},
+        "version": {"type": "string"},
+        "hash": {"type": "string"},
+        "point_in_time": {"type": "boolean"},
+        "availability_time_notes": {"type": "string"},
+        "universe_notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "splits": {
+      "type": "object",
+      "required": ["policy", "protected_test_locked"],
+      "properties": {
+        "policy": {"enum": ["chronological", "rolling_origin", "walk_forward", "regime_holdout", "other"]},
+        "description": {"type": "string"},
+        "embargo": {"type": "string"},
+        "protected_test_locked": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "baselines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "role"],
+        "properties": {
+          "name": {"type": "string"},
+          "role": {"enum": ["trivial", "domain", "strong", "control"]},
+          "frozen_before_test": {"type": "boolean"},
+          "notes": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "primary"],
+        "properties": {
+          "name": {"type": "string"},
+          "primary": {"type": "boolean"},
+          "uncertainty_method": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "transaction_costs": {
+      "type": ["object", "null"],
+      "properties": {
+        "included": {"type": "boolean"},
+        "model": {"type": "string"},
+        "sensitivity_grid": {"type": "array", "items": {"type": "number"}}
+      },
+      "additionalProperties": false
+    },
+    "leakage_controls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"}
+    },
+    "reproducibility": {
+      "type": "object",
+      "required": ["commit_sha", "exact_command", "raw_outputs_retained"],
+      "properties": {
+        "commit_sha": {"type": "string"},
+        "config": {"type": "string"},
+        "environment_lock": {"type": "string"},
+        "exact_command": {"type": "string"},
+        "raw_outputs_retained": {"type": "boolean"},
+        "artifact_path": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "result_status": {"enum": ["UNTESTED", "POSITIVE", "NEGATIVE", "INCONCLUSIVE"]},
+    "release_decision": {"enum": ["CONTINUE", "FREEZE", "RELEASE", "RELEASE_WITH_LIMITATIONS", "ARCHIVE"]},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "allowed"],
+        "properties": {
+          "claim": {"type": "string"},
+          "allowed": {"type": "boolean"},
+          "evidence": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

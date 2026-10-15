@@ -9,7 +9,7 @@ from .model import FIJEPA, fit_ridge_probe
 
 
 def run(*, seed: int, epochs: int) -> dict[str, object]:
-    series = make_synthetic_market(seed=seed)
+    series = make_synthetic_market(seed=seed, normalize=False)
     split = chronological_windows(series)
     model = FIJEPA(
         features=series.shape[1],
