@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "financemeta-market-data-integrity"
+version = "1.0.0"
+description = "Read-only OHLCV integrity checker for FinanceMeta FinTech Studio"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<9"]
+
+[project.scripts]
+financemeta-data-check = "market_data_integrity.cli:main"
+financemeta-data-benchmark = "market_data_integrity.benchmark:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -36,7 +36,7 @@ pytest -q
 python -m fi_jepa.cli --epochs 40
 ```
 
-The CLI prints JSON containing the seed, split sizes, training loss, probe error, directional accuracy, and persistence-baseline error. These are **synthetic experiment metrics**, not investment returns.
+The CLI prints JSON containing the seed, split sizes, training loss, probe error, above-training-mean classification accuracy on the train-normalized target, and persistence-baseline error. The classification metric is **not raw return-direction accuracy**. These are **synthetic experiment metrics**, not investment returns.
 
 ## Evidence boundary
 
