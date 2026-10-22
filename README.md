@@ -10,7 +10,7 @@ This repository is intentionally evidence-first. It should not be read as proof 
 
 ## Current repository contents
 
-- `FI-JEPA/` — current proposal-stage research directory; its status is recorded conservatively in `registry/projects.json`.
+- `FI-JEPA/` — an M1/E1 executable deterministic **synthetic** baseline, as recorded in `registry/projects.json`. It does not establish real-market performance, profitability, novelty, or external validation.
 - `OPERATING_SYSTEM_2026.md` — operating standard for research, chapters, programs, participant outcomes, partnerships, and evidence reporting.
 - `registry/programs.json` — program launch-gate registry. Entries remain planned until evidence satisfies their gate.
 - `registry/projects.json` — machine-readable project evidence registry and claim boundary.
@@ -34,7 +34,7 @@ Read **[OPERATING_SYSTEM_2026.md](OPERATING_SYSTEM_2026.md)** before adding a ne
 2. Create the appropriate evidence record from `templates/`.
 3. Execute work and link actual artifacts rather than intended outputs.
 4. Run the registry validator after status changes.
-5. Advance maturity/evidence level only when the defined gate is satisfied.
+5. Advance maturity/evidence level only when the defined gate is satisfied. A program marked `ready`, `active`, `at_risk`, or `complete` must link an existing, repository-relative `evidence_record` file. The validator checks the path and consistency, **not** the truth of that file's assertions; a reviewer must still inspect the record.
 6. Report completed outcomes through the quarterly report rather than rolling targets into achievement metrics.
 
 ```bash

@@ -28,6 +28,15 @@ PROJECT_STATUS = {
     "external_outcome",
     "archived",
 }
+STATUS_MATURITY = {
+    "proposal_stub": "M0",
+    "executable": "M1",
+    "internal_evidence": "M2",
+    "external_data": "M3",
+    "external_review": "M4",
+    "external_outcome": "M5",
+}
+PROMOTED_PROGRAM_STATUS = {"ready", "active", "at_risk", "complete"}
 
 
 def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
@@ -107,14 +116,30 @@ def main() -> None:
 
     for p in programs:
         pid = p["id"]
-        if p.get("status") not in PROGRAM_STATUS:
-            errors.append(f"program {pid}: invalid status {p.get('status')!r}")
+        status = p.get("status")
+        record = p.get("evidence_record")
+        if status not in PROGRAM_STATUS:
+            errors.append(f"program {pid}: invalid status {status!r}")
         if p.get("minimum_evidence_level") not in EVIDENCE - {"E0"}:
             errors.append(f"program {pid}: minimum_evidence_level must be E1–E5")
-        if not str(p.get("launch_gate", "")).strip():
-            errors.append(f"program {pid}: missing launch_gate")
-        if p.get("status") == "planned_until_evidence_record" and p.get("evidence_record"):
+        gate = p.get("launch_gate")
+        if not isinstance(gate, str) or not gate.strip():
+            errors.append(f"program {pid}: launch_gate must be a non-empty string")
+        if status == "planned_until_evidence_record" and record:
             errors.append(f"program {pid}: planned status conflicts with linked evidence_record; review promotion explicitly")
+        if status in PROMOTED_PROGRAM_STATUS and (not isinstance(record, str) or not record.strip()):
+            errors.append(f"program {pid}: {status} requires an evidence_record path")
+        if record is not None:
+            if not isinstance(record, str) or not record.strip():
+                errors.append(f"program {pid}: evidence_record must be a non-empty repository-relative path")
+            else:
+                try:
+                    evidence_path = repository_path(record)
+                except SystemExit as exc:
+                    errors.append(f"program {pid}: invalid evidence_record: {exc}")
+                else:
+                    if not evidence_path.is_file():
+                        errors.append(f"program {pid}: evidence_record file does not exist: {record}")
 
     for p in projects:
         pid = p["id"]
@@ -128,10 +153,12 @@ def main() -> None:
             errors.append(f"project {pid}: invalid evidence level {evidence!r}")
         if status not in PROJECT_STATUS:
             errors.append(f"project {pid}: invalid status {status!r}")
-        if not str(p.get("claim_boundary", "")).strip():
-            errors.append(f"project {pid}: missing claim_boundary")
-        if not str(p.get("next_gate", "")).strip():
-            errors.append(f"project {pid}: missing next_gate")
+        if status in STATUS_MATURITY and maturity != STATUS_MATURITY[status]:
+            errors.append(f"project {pid}: status {status} requires maturity {STATUS_MATURITY[status]}")
+        if not isinstance(p.get("claim_boundary"), str) or not p["claim_boundary"].strip():
+            errors.append(f"project {pid}: claim_boundary must be a non-empty string")
+        if not isinstance(p.get("next_gate"), str) or not p["next_gate"].strip():
+            errors.append(f"project {pid}: next_gate must be a non-empty string")
         if not isinstance(state, dict):
             errors.append(f"project {pid}: verified_repository_state must be an object")
             continue
@@ -169,8 +196,8 @@ def main() -> None:
             except SystemExit as exc:
                 errors.append(f"project {pid}: {exc}")
             else:
-                if not resolved_path.exists():
-                    errors.append(f"project {pid}: registered path does not exist: {path}")
+                if not resolved_path.is_dir():
+                    errors.append(f"project {pid}: registered path is not a directory: {path}")
 
     if errors:
         raise SystemExit("registry validation failed:\n- " + "\n- ".join(errors))
