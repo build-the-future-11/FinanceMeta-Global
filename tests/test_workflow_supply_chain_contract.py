@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import os
 import re
+import subprocess
+import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -115,6 +119,63 @@ class WorkflowSupplyChainContractTest(unittest.TestCase):
             workflow,
         )
         self.assertNotIn("pip install -e 'FI-JEPA[dev]'", workflow)
+
+    def _run_fi_jepa_toolchain_step(self, *, fail_install: bool = False) -> subprocess.CompletedProcess[str]:
+        workflow = self._read("fi-jepa-ci.yml")
+        match = re.search(
+            r"      - name: Verify exact Python and pip toolchain\n"
+            r"        shell: bash\n"
+            r"        run: \|\n((?:          .*\n)+)",
+            workflow,
+        )
+        self.assertIsNotNone(match, "missing executable toolchain verification step")
+        script = textwrap.dedent(match.group(1))
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            shim = temporary / "python"
+            shim.write_text(
+                "#!/bin/bash\n"
+                'set -euo pipefail\n'
+                'if [[ "$1" == "-c" ]]; then\n'
+                '  printf "%s\\n" "$PYTHON_VERSION"\n'
+                'elif [[ "$1 $2 $3" == "-m pip install" ]]; then\n'
+                '  [[ "${FAIL_INSTALL:-0}" != "1" ]] || exit 42\n'
+                '  [[ "$4" == "--no-deps" && "$5" == "pip==$PIP_VERSION" ]] || exit 43\n'
+                '  printf "%s" "$PIP_VERSION" > "$PIP_STATE"\n'
+                'elif [[ "$1 $2 $3" == "-m pip --version" ]]; then\n'
+                '  printf "pip %s from test (python 3.12)\\n" "$(cat "$PIP_STATE")"\n'
+                'else\n'
+                '  exit 44\n'
+                'fi\n',
+                encoding="utf-8",
+            )
+            shim.chmod(0o755)
+            state = temporary / "pip-version"
+            state.write_text("26.2.2", encoding="utf-8")
+            environment = {
+                **os.environ,
+                "PATH": f"{temporary}{os.pathsep}{os.environ['PATH']}",
+                "PYTHON_VERSION": "3.12.14",
+                "PIP_VERSION": "26.2.1",
+                "PIP_STATE": str(state),
+                "FAIL_INSTALL": "1" if fail_install else "0",
+            }
+            return subprocess.run(
+                ["bash", "-c", script],
+                env=environment,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=10,
+            )
+
+    def test_fi_jepa_toolchain_converges_from_newer_runner_pip(self) -> None:
+        result = self._run_fi_jepa_toolchain_step()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_fi_jepa_toolchain_stops_when_pip_install_fails(self) -> None:
+        result = self._run_fi_jepa_toolchain_step(fail_install=True)
+        self.assertEqual(result.returncode, 42, result.stdout + result.stderr)
 
     def test_fi_jepa_python_pip_and_build_backend_are_exact_locked(self) -> None:
         workflow = self._read("fi-jepa-ci.yml")
