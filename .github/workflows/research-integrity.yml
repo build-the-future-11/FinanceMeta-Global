@@ -27,7 +27,7 @@ jobs:
         working-directory: FI-JEPA
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.11"
           cache: pip
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.11"
       - run: python FinanceBench/scripts/validate_contract.py FinanceBench/examples/benchmark.template.json
@@ -52,7 +52,7 @@ jobs:
         working-directory: FinTech-Studio/market_data_integrity_v1
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.11"
           cache: pip
